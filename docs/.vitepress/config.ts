@@ -4,6 +4,7 @@ export default defineConfig({
   title: 'php-vio',
   description: 'GPU Rendering, Audio, Video & Input for PHP',
   lang: 'en-US',
+  base: '/php-vio-docs/',
 
   head: [
     ['link', { rel: 'icon', type: 'image/svg+xml', href: '/logo.svg' }],
