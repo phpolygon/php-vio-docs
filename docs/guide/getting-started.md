@@ -57,15 +57,18 @@ Requires PHP SDK + Visual Studio Build Tools. Place precompiled dependencies in 
 ```cmd
 cd C:\php-sdk\phpdev\vs17\x64\php-src\ext\vio
 
-:: Full build
+:: Full build (with DirectX 11 & 12)
 configure --enable-vio --with-glfw=C:\deps\glfw ^
   --with-vulkan=C:\VulkanSDK\1.3.xxx ^
   --with-glslang=C:\deps\glslang ^
   --with-spirv-cross=C:\deps\spirv-cross ^
-  --with-ffmpeg=C:\deps\ffmpeg
+  --with-ffmpeg=C:\deps\ffmpeg ^
+  --with-d3d11 --with-d3d12
 
 nmake
 ```
+
+D3D11 and D3D12 are enabled by default on Windows when the system headers are available (part of the Windows SDK). They require `d3d11.lib`/`d3d12.lib`, `dxgi.lib`, `d3dcompiler.lib`, and `dxguid.lib`.
 
 ### Enable the Extension
 

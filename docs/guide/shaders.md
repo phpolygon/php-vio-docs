@@ -59,7 +59,8 @@ GLSL source
       OpenGL: GLSL 4.10
       Metal:  MSL
       Vulkan: SPIR-V (passthrough)
-      D3D:    HLSL
+      D3D11:  HLSL → D3DCompile → DXBC (SM 5.0)
+      D3D12:  HLSL → D3DCompile → DXBC (SM 5.1)
 ```
 
 This requires `--with-glslang` and `--with-spirv-cross` at build time.
@@ -77,7 +78,7 @@ $shader = vio_shader($ctx, [
 ```
 
 ::: warning
-Raw GLSL shaders only work with the OpenGL backend. They cannot be cross-compiled to Vulkan/Metal.
+Raw GLSL shaders only work with the OpenGL backend. They cannot be cross-compiled to Vulkan, Metal, or DirectX.
 :::
 
 ## Shader Reflection

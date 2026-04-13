@@ -7,7 +7,7 @@ php-vio uses a **vtable-based backend dispatch** pattern. All GPU operations are
 The core of the system is `vio_backend` — a struct of ~20 function pointers defined in `include/vio_backend.h`:
 
 ```
-vio_create("opengl"|"vulkan"|"metal"|"null"|"auto", [...])
+vio_create("opengl"|"vulkan"|"metal"|"d3d11"|"d3d12"|"null"|"auto", [...])
   → vio_find_backend(name)
     → backend->create_surface()
 ```
@@ -25,10 +25,10 @@ All subsequent calls (`vio_draw`, `vio_bind_pipeline`, etc.) dispatch through th
 When using `"auto"` (the default):
 
 ```
-Vulkan > Metal > OpenGL > Null
+D3D12 > Vulkan > D3D11 > Metal > OpenGL > Null
 ```
 
-The first backend that successfully initializes wins.
+The first available backend in this order wins. On Windows, D3D12 is preferred. On macOS, Vulkan (via MoltenVK) or Metal. On Linux, Vulkan or OpenGL.
 
 ## Backend Registration
 
@@ -63,6 +63,8 @@ Every optional feature is behind an `#ifdef` guard:
 #ifdef HAVE_GLFW     // Windowing & input
 #ifdef HAVE_VULKAN   // Vulkan backend
 #ifdef HAVE_METAL    // Metal backend (macOS only)
+#ifdef HAVE_D3D11    // Direct3D 11 backend (Windows only)
+#ifdef HAVE_D3D12    // Direct3D 12 backend (Windows only)
 #ifdef HAVE_FFMPEG   // Video recording & streaming
 #ifdef HAVE_GLSLANG  // GLSL → SPIR-V compilation
 #ifdef HAVE_SPIRV_CROSS // Shader reflection & transpilation
@@ -130,6 +132,8 @@ src/
     opengl/vio_opengl.c      # OpenGL 4.1 Core
     vulkan/vio_vulkan.c      # Vulkan + VMA
     metal/vio_metal.m         # Metal (Objective-C)
+    d3d11/vio_d3d11.c        # Direct3D 11 (Windows)
+    d3d12/vio_d3d12.c        # Direct3D 12 (Windows)
 vendor/
   glad/ stb/ vma/ miniaudio/ # Vendored dependencies
 ```
