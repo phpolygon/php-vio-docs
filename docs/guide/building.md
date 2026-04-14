@@ -95,6 +95,10 @@ sudo make install
 cp modules/vio.so $(php-config --extension-dir)/
 ```
 
+::: tip Release Binaries
+Pre-built release archives (ZIP) contain the binary named `vio.so` (or `vio.dll` on Windows) for Position Independent Executable (PIE) compatibility.
+:::
+
 Add to `php.ini`:
 
 ```ini

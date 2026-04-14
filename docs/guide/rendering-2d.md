@@ -8,7 +8,7 @@ php-vio includes a built-in 2D batch renderer that handles shapes, sprites, and 
 2. Each primitive has a `z` value for depth sorting (default: `0.0`)
 3. Call `vio_draw_2d($ctx)` to **flush** the batch — sorts by z, batches by texture, renders
 
-The batch supports up to **4096 items** per frame.
+The batch starts with a capacity of **4096 items** (24,576 vertices) and grows dynamically as needed — there is no hard upper limit.
 
 ## Shapes
 
@@ -97,7 +97,7 @@ $size = vio_text_measure($font, "Hello, World!");
 // $size = ["width" => 142.5, "height" => 24.0]
 ```
 
-Font rendering uses stb_truetype with a 512x512 atlas texture.
+Font rendering uses stb_truetype with a 4096x4096 atlas texture that supports multi-range Unicode — including Latin, Greek, Cyrillic, CJK, Hangul, and more (33,000+ glyphs). See the [Fonts API](/api/fonts) for full details.
 
 ## Colors
 

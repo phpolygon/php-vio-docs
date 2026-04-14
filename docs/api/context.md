@@ -14,7 +14,7 @@ VioContext|false vio_create(string $backend = "auto", array $options = [])
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
-| `$backend` | string | `"auto"` | Backend name: `"auto"`, `"opengl"`, `"vulkan"`, `"metal"`, `"null"` |
+| `$backend` | string | `"auto"` | Backend name: `"auto"`, `"opengl"`, `"vulkan"`, `"metal"`, `"d3d11"`, `"d3d12"`, `"null"` |
 | `$options` | array | `[]` | Context options (see below) |
 
 **Options:**
@@ -28,6 +28,8 @@ VioContext|false vio_create(string $backend = "auto", array $options = [])
 | `samples` | int | `0` | MSAA sample count (0 = disabled) |
 | `debug` | bool | `false` | Enable debug output |
 | `headless` | bool | `false` | Create without visible window |
+
+When `$backend` is `"auto"`, the best available backend is selected based on the current platform: Metal > OpenGL on macOS, D3D12 > D3D11 > Vulkan > OpenGL on Windows, and Vulkan > OpenGL on Linux. See the [Backends guide](/guide/backends) for details.
 
 **Returns:** `VioContext` on success, `false` on failure.
 

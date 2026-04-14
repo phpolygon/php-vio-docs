@@ -17,7 +17,15 @@ $ctx = vio_create("d3d12", [...]);   // Windows only
 $ctx = vio_create("null", [...]);    // No-op backend for testing
 ```
 
-Auto-selection priority: **D3D12 > Vulkan > D3D11 > Metal > OpenGL > Null**
+Auto-selection is platform-specific:
+
+| Platform | Priority |
+|---|---|
+| **macOS** | Metal > OpenGL |
+| **Windows** | D3D12 > D3D11 > Vulkan > OpenGL |
+| **Linux** | Vulkan > OpenGL |
+
+On macOS, Vulkan (via MoltenVK) is supported but opt-in — you must request it explicitly.
 
 ## OpenGL 4.1 Core
 

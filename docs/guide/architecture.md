@@ -22,13 +22,15 @@ All subsequent calls (`vio_draw`, `vio_bind_pipeline`, etc.) dispatch through th
 
 ## Auto-Selection Priority
 
-When using `"auto"` (the default):
+When using `"auto"` (the default), the priority depends on the platform:
 
-```
-D3D12 > Vulkan > D3D11 > Metal > OpenGL > Null
-```
+| Platform | Priority |
+|---|---|
+| **macOS** | Metal > OpenGL > Null |
+| **Windows** | D3D12 > D3D11 > Vulkan > OpenGL > Null |
+| **Linux** | Vulkan > OpenGL > Null |
 
-The first available backend in this order wins. On Windows, D3D12 is preferred. On macOS, Vulkan (via MoltenVK) or Metal. On Linux, Vulkan or OpenGL.
+The first available backend in the platform's priority order wins. On macOS, Vulkan via MoltenVK is supported but opt-in — you must request it explicitly with `vio_create("vulkan", ...)`.
 
 ## Backend Registration
 
@@ -89,7 +91,7 @@ vio_poll_events($ctx)    ← Process input events
 
 ## 2D Batch Renderer
 
-The 2D system collects up to 4096 draw items per frame. Each item has a z-value for sorting. When `vio_draw_2d()` is called:
+The 2D system collects draw items per frame into a dynamically-sized batch buffer. The initial capacity is 4096 items (24,576 vertices), but the buffer grows automatically when exceeded. The GPU VBO capacity is tracked separately and reallocated as needed, so you never hit a hard limit. When `vio_draw_2d()` is called:
 
 1. Items are sorted by z-value
 2. Batched by texture (sprites vs. solid shapes)
