@@ -84,6 +84,35 @@ Apple's native GPU API. Best performance on macOS.
 
 Metal is compiled with Objective-C (`vio_metal.m`) and uses CAMetalLayer for presentation. It is only available when built with `--with-metal`.
 
+### Metal 2D Pipeline
+
+Since v1.4.0, Metal has a complete native 2D rendering pipeline:
+
+- MSL shaders for shapes (color-only) and sprites (textured)
+- Font atlas support via R8Unorm textures with swizzle (1,1,1,R)
+- Dynamic vertex buffer growth
+- Scissor clipping with HiDPI scaling
+- Pixel readback via `vio_read_pixels()` and `vio_save_screenshot()`
+
+### Performance: Metal vs OpenGL
+
+Benchmarked on Apple M2 Pro (macOS, 1280x720, VSync off). Measures draw + flush time only (excludes present/VSync wait).
+
+| Scenario | Metal | OpenGL | Delta |
+|---|---|---|---|
+| 500 rects | 192 us | 179 us | +7% |
+| 200 rects + 200 rounded rects + 50 text | 323 us | 313 us | +3% |
+| 1000 rects + 100 text | **301 us** | 374 us | **-20%** |
+
+**Tail latency (frame time consistency):**
+
+| Percentile | Metal | OpenGL |
+|---|---|---|
+| p95 | 306-601 us | 437-754 us |
+| p99 | 375-674 us | 907-953 us |
+
+Metal is slightly slower on simple scenes due to command encoding overhead, but **20% faster on heavy scenes** (1000+ draw calls with text). More importantly, Metal delivers **30-40% better tail latency** — fewer frame time spikes and more consistent rendering.
+
 ## Direct3D 11
 
 Immediate-mode DirectX backend. Broad hardware compatibility on Windows.
@@ -195,7 +224,7 @@ $active = vio_backend_name($ctx);  // e.g. "opengl"
 | 3D Rendering | ✅ | ✅ | ✅ | ✅ | ✅ | — |
 | 2D Batch | ✅ | ✅ | ✅ | ✅ | ✅ | — |
 | Shader Compilation | ✅ | ✅ | ✅ | ✅ | ✅ | — |
-| `vio_read_pixels()` | ✅ | ⚠️ stub | ⚠️ stub | ⚠️ stub | ⚠️ stub | — |
+| `vio_read_pixels()` | ✅ | ⚠️ stub | ✅ | ⚠️ stub | ⚠️ stub | — |
 | Instanced Drawing | ✅ | ✅ | ✅ | ✅ | ✅ | — |
 | Render Targets | ✅ | ✅ | ✅ | ✅ | ✅ | — |
 | Cubemaps | ✅ | ✅ | ✅ | ✅ | ✅ | — |
