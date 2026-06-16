@@ -129,6 +129,18 @@ Query support at runtime with [`vio_supports_feature()`](/api/backend#vio-suppor
 | `VIO_MOUSE_RIGHT` | 1 |
 | `VIO_MOUSE_MIDDLE` | 2 |
 
+## Touch Phases
+
+Used by `vio_touch_get()` and `vio_touch_inject()` for the touch `phase` field.
+
+| Constant | Value |
+|---|---|
+| `VIO_TOUCH_BEGAN` | 1 |
+| `VIO_TOUCH_MOVED` | 2 |
+| `VIO_TOUCH_STATIONARY` | 3 |
+| `VIO_TOUCH_ENDED` | 4 |
+| `VIO_TOUCH_CANCELLED` | 5 |
+
 ## Modifier Keys (Bitmask)
 
 | Constant | Value |
