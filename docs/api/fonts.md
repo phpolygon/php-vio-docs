@@ -85,3 +85,15 @@ vio_text($ctx, $font, "Hello, World!", $centerX, 300);
 ## Notes
 
 - **Space glyph (U+0020):** As of v1.4.0, the space character is correctly included in the font atlas. Earlier versions omitted it, which could cause incorrect word spacing in rendered text.
+
+- **Atlas warm-up:** Glyphs are rasterised into the atlas the first time they are drawn at a given font + size, so the first frame that renders a new size (or a new script) pays a one-time upload cost that can show as a hitch. Warm the atlas at load time by measuring a representative string for every font/size you use:
+
+  ```php
+  $sizes = [12.0, 16.0, 24.0, 32.0];
+  foreach ($sizes as $size) {
+      $font = vio_font($ctx, "/path/to/font.ttf", $size);
+      if ($font !== false) {
+          vio_text_measure($font, "abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789");
+      }
+  }
+  ```

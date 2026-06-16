@@ -141,4 +141,5 @@ php-vio includes built-in shaders for the 2D renderer and a default 3D shader. T
 - Use `layout(std140)` for uniform blocks — it guarantees consistent memory layout across backends
 - Avoid `push_constant` (Vulkan-specific) if you want cross-backend shaders
 - Use `binding` qualifiers explicitly — don't rely on auto-assignment
+- A shader can bind up to **8** regular texture samplers (2D, 3D, cubemap) in addition to the dedicated shadow/depth samplers — keep within that budget for cross-backend portability
 - Test with `vio_shader_reflect()` to verify your shader's interface matches your vertex data

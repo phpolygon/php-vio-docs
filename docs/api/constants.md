@@ -107,6 +107,11 @@ Complete reference of all `VIO_*` constants.
 | `VIO_FEATURE_TESSELLATION` | 2 |
 | `VIO_FEATURE_GEOMETRY` | 3 |
 | `VIO_FEATURE_MULTIVIEW` | 4 |
+| `VIO_FEATURE_RENDER_TARGET` | 8 |
+| `VIO_FEATURE_CUBEMAP` | 12 |
+| `VIO_FEATURE_TEXTURE_3D` | 22 |
+
+Query support at runtime with [`vio_supports_feature()`](/api/backend#vio-supports-feature).
 
 ## Input Actions
 

@@ -47,13 +47,54 @@ Create a texture from a file or raw pixel data.
 | `VIO_WRAP_CLAMP` | 1 | Clamp to edge pixels |
 | `VIO_WRAP_MIRROR` | 2 | Mirror at edges |
 
+## vio_texture_3d
+
+```php
+VioTexture|false vio_texture_3d(VioContext $context, array $config)
+```
+
+Create a 3D / volume texture from raw RGBA8 voxel data. Bind it with `vio_bind_texture()` and sample it in GLSL with a `sampler3D`.
+
+Volume textures back features like Fieldtracing's baked Signed Distance Field and SH-L1 irradiance fields, where each voxel stores per-point data the shader trilinearly interpolates.
+
+**Config:**
+
+| Key | Type | Default | Description |
+|---|---|---|---|
+| `data` | string | — | Raw RGBA8 voxels, `width*height*depth*4` bytes, Z-slices in ascending order |
+| `width` | int | — | Volume width in voxels |
+| `height` | int | — | Volume height in voxels |
+| `depth` | int | — | Volume depth in voxels (number of Z-slices) |
+| `filter` | int | `VIO_FILTER_LINEAR` | Texture filtering |
+| `wrap` | int | `VIO_WRAP_CLAMP` | Texture wrapping (clamp is the usual choice for volumes) |
+
+Returns `false` on a backend that has no 3D-texture path, on a size/data mismatch, or on upload failure. Probe support with `vio_supports_feature($ctx, VIO_FEATURE_TEXTURE_3D)` before relying on it — OpenGL, D3D11, D3D12, Metal and Vulkan all report it.
+
+```php
+// width*height*depth voxels, 4 bytes each (RGBA8)
+$volume = vio_texture_3d($ctx, [
+    "data"   => $voxels,            // string of w*h*d*4 bytes
+    "width"  => 64,
+    "height" => 64,
+    "depth"  => 64,
+    "filter" => VIO_FILTER_LINEAR,  // trilinear interpolation
+    "wrap"   => VIO_WRAP_CLAMP,
+]);
+
+vio_bind_texture($ctx, $volume, 3);  // sample with a sampler3D bound to slot 3
+```
+
+::: tip Sampler budget
+A backend now supports up to **8** regular texture samplers per shader alongside the dedicated shadow/depth samplers (php-vio ≥ v1.21.1). 3D textures, cubemaps and 2D textures all draw from this pool.
+:::
+
 ## vio_bind_texture
 
 ```php
 void vio_bind_texture(VioContext $context, VioTexture $texture, int $slot = 0)
 ```
 
-Bind a texture to a texture unit. Slot corresponds to the `binding` qualifier in GLSL.
+Bind a texture to a texture unit. Slot corresponds to the `binding` qualifier in GLSL. Works for 2D textures, 3D / volume textures (`vio_texture_3d`) and cubemaps alike.
 
 ## vio_texture_size
 
