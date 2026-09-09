@@ -29,6 +29,7 @@ Complete reference of all `VIO_*` constants.
 | `VIO_LINES` | 3 |
 | `VIO_LINE_STRIP` | 4 |
 | `VIO_POINTS` | 5 |
+| `VIO_PATCHES` | 6 |
 
 ## Culling
 

@@ -11,8 +11,8 @@ php -d extension=vio examples/gallery.php d3d11      # pick a backend
 php -d extension=vio examples/gallery.php opengl out/ shadow_map,hdr_tonemap
 ```
 
-The scenes below were captured on Direct3D 12 (the MSAA scene on Direct3D 11); the same
-script produces the same pictures on OpenGL and Metal.
+The scenes below were captured on Direct3D 12 (the MSAA scene on Direct3D 11, the tessellation
+scene on OpenGL); the same script produces the same pictures on OpenGL and Metal.
 
 ## 2D
 
@@ -31,6 +31,13 @@ script produces the same pictures on OpenGL and Metal.
 | **Sampler states** — `filter` × `wrap` grid (`VIO_FILTER_*`, `VIO_WRAP_*`). [API](/api/textures#filter-constants) | **Anisotropic filtering** — `['anisotropy' => 16]` (right) vs. trilinear (left) on a grazing-angle plane. [API](/api/textures#vio-texture) |
 | ![3D texture](/gallery/texture_3d_volume.png) | |
 | **Volume texture** — `vio_texture_3d` ray-marched through `sampler3D`. [API](/api/textures#vio-texture-3d) | |
+
+## Geometry & tessellation stages
+
+| | |
+|---|---|
+| ![Geometry shader point sprites](/gallery/geometry_shader.png) | ![Tessellated patches](/gallery/tessellation.png) |
+| **Geometry shader** — `vio_shader(['geometry' => …])`: 700 single vertices drawn as `VIO_POINTS`, the GS emits a sprite quad per point, sized and coloured from per-vertex data. [Guide](/guide/shaders#geometry-tessellation-stages) | **Tessellation** — `tess_control` + `tess_eval` on `VIO_PATCHES` (`patch_vertices` 4): the evaluation stage displaces 3×3 quad patches by a height function; `u_level` 2 (left) vs 18 (right). [Guide](/guide/shaders#geometry-tessellation-stages) |
 
 ## Render targets
 
@@ -59,6 +66,8 @@ script produces the same pictures on OpenGL and Metal.
 | Post-process, shadow map, MRT, cube RT, HDR | ✅ | ✅ | ✅ | ✅ | — |
 | MSAA render target | ✅ | ✅ | — | ✅ | — |
 | Compute storage image, vertex storage | ✅ (GL ≥ 4.3) | ✅ | ✅ | ✅ | — |
+| Geometry shader | ✅ (GL ≥ 3.2) | ✅ (SPIRV-Cross ≥ 2025-05) | ✅ (same) | — | — |
+| Tessellation | ✅ (GL ≥ 4.0) | — | — | — | — |
 
 Vulkan currently has no 3D pipeline (`VIO_FEATURE_3D_PIPELINE == 0`); query
 [`vio_supports_feature()`](/api/backend#vio-supports-feature) before relying on a path.

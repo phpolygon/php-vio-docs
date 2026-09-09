@@ -248,7 +248,8 @@ pins it. Query at runtime with [`vio_supports_feature()`](/api/backend#vio-suppo
 | `vio_texture_update` | ✅ | ✅ | ✅ | ✅ | ❌ | — |
 | Anisotropic filtering | ✅ | ✅ | ✅ | ignored | ✅ | — |
 | Texture swizzle | ✅ (3.3+) | ❌ (CPU expand) | ✅ | ✅ | ✅ | — |
-| Tessellation / geometry shaders | GL version | ❌ | ❌ | ❌ | ❌ | — |
+| Geometry shaders (`vio_shader` `geometry`) | ✅ (GL ≥ 3.2) | ✅ (SPIRV-Cross ≥ 2025-05; varying inputs only) | ✅ (same) | ❌ | ❌ | — |
+| Tessellation (`tess_control` + `tess_eval`, `VIO_PATCHES`) | ✅ (GL ≥ 4.0) | ❌ (no HLSL hull/domain in SPIRV-Cross yet; flag stays 0) | ❌ (same) | ❌ | ❌ | — |
 | `vio_read_pixels()` / screenshots | ✅ | ✅ | ✅ | ✅ | ✅ | — |
 | Recording / streaming capture | ✅ | ✅ | ✅ | ✅ | ✅ | — |
 

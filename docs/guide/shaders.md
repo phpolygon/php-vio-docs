@@ -103,6 +103,77 @@ $shader = vio_shader($ctx, [
 Raw GLSL shaders only work with the OpenGL backend. They cannot be cross-compiled to Vulkan, Metal, or DirectX.
 :::
 
+## Geometry & tessellation stages
+
+`vio_shader` accepts three optional stages next to `vertex` / `fragment`:
+
+| Key | Stage | Feature flag |
+|---|---|---|
+| `geometry` | Geometry shader | `VIO_FEATURE_GEOMETRY` |
+| `tess_control` + `tess_eval` | Tessellation control + evaluation (always a pair) | `VIO_FEATURE_TESSELLATION` |
+
+Check the flag first: on a backend that reports 0 (Metal has no geometry stage; Vulkan is 2D-only;
+OpenGL below 3.2 / 4.0; Direct3D when the bundled SPIRV-Cross cannot translate the stage)
+`vio_shader` returns `false` with a warning.
+
+| | |
+|---|---|
+| ![Geometry shader: point sprites emitted from single vertices](/gallery/geometry_shader.png) | ![Tessellation: quad patches displaced in the evaluation stage](/gallery/tessellation.png) |
+| Geometry stage — 700 `VIO_POINTS`, one sprite quad per vertex | Tessellation — 3×3 quad patches, `u_level` 2 (left) vs 18 (right) |
+
+```php
+// Point sprites: one vertex in, a quad out. The GS reads its input position
+// from a user varying - see the portability note below.
+$vs = <<<'GLSL'
+#version 450
+layout(location = 0) in vec3 aPos;
+layout(location = 0) out vec4 vPos;
+void main() { vPos = vec4(aPos, 1.0); gl_Position = vPos; }
+GLSL;
+
+$gs = <<<'GLSL'
+#version 450
+layout(points) in;
+layout(triangle_strip, max_vertices = 4) out;
+layout(location = 0) in vec4 vPos[];
+uniform float u_half;
+void main() {
+    vec4 c = vPos[0];
+    gl_Position = c + vec4(-u_half, -u_half, 0, 0); EmitVertex();
+    gl_Position = c + vec4( u_half, -u_half, 0, 0); EmitVertex();
+    gl_Position = c + vec4(-u_half,  u_half, 0, 0); EmitVertex();
+    gl_Position = c + vec4( u_half,  u_half, 0, 0); EmitVertex();
+    EndPrimitive();
+}
+GLSL;
+
+if (vio_supports_feature($ctx, VIO_FEATURE_GEOMETRY)) {
+    $shader   = vio_shader($ctx, ['vertex' => $vs, 'geometry' => $gs, 'fragment' => $fs]);
+    $pipeline = vio_pipeline($ctx, ['shader' => $shader, 'topology' => VIO_POINTS]);
+    vio_bind_pipeline($ctx, $pipeline);
+    vio_set_uniform($ctx, 'u_half', 0.05);   // uniforms of the GS work like any other
+    vio_draw($ctx, $points);
+}
+```
+
+Tessellation works the same way; the pipeline then draws patches and takes the
+control-point count from `patch_vertices` (default 3):
+
+```php
+$shader   = vio_shader($ctx, ['vertex' => $vs, 'tess_control' => $tcs, 'tess_eval' => $tes, 'fragment' => $fs]);
+$pipeline = vio_pipeline($ctx, ['shader' => $shader, 'patch_vertices' => 4]);   // always VIO_PATCHES
+vio_set_uniform($ctx, 'u_level', 16.0);   // e.g. a TCS uniform driving gl_TessLevelOuter/Inner
+```
+
+::: tip Portable geometry shaders
+Export the position from the vertex stage as a `layout(location = N) out vec4` varying and read it
+in the geometry shader through the matching `in vec4 name[]` array, instead of `gl_in[i].gl_Position`.
+OpenGL accepts both forms; the Direct3D backends only translate the varying form (a SPIRV-Cross
+limitation). Textures sampled in a geometry or tessellation stage on Direct3D are bound at the
+register the fragment-stage sampler map assigns to their unit, so declare samplers in the same order
+in every stage that uses them.
+:::
+
 ## Shader Reflection
 
 Introspect compiled shaders at runtime:

@@ -16,7 +16,15 @@ Compile a shader program.
 |---|---|---|---|
 | `vertex` | string | Yes | Vertex shader source |
 | `fragment` | string | Yes | Fragment shader source |
+| `geometry` | string | No | Geometry shader source. Requires `VIO_FEATURE_GEOMETRY`; see [Geometry & tessellation stages](../guide/shaders.md#geometry-tessellation-stages) |
+| `tess_control` | string | No | Tessellation control shader. Always together with `tess_eval`; requires `VIO_FEATURE_TESSELLATION` |
+| `tess_eval` | string | No | Tessellation evaluation shader. The pipeline then draws `VIO_PATCHES` |
 | `format` | int | No | Shader format (default: `VIO_SHADER_AUTO`) |
+
+On a backend that reports the stage's feature flag as 0 (Metal, Vulkan, OpenGL below 3.2 / 4.0, D3D
+with a SPIRV-Cross that cannot translate the stage) `vio_shader` returns `false` with a warning
+before touching the backend. Uniforms declared in an extra stage are set with `vio_set_uniform()`
+like any other uniform.
 
 ### Shader Format Constants
 
@@ -53,6 +61,7 @@ Create a render pipeline combining shader and render state.
 | `slope_scaled_depth_bias` | float | `0` | Slope-scaled depth bias |
 | `hdr` | bool | `false` | Pipeline renders into an RGBA16F (`hdr`) target — needed for the D3D12 / Metal PSO format |
 | `attachments` | int[] | — | `VIO_FORMAT_*` per colour attachment when rendering into an MRT target (D3D12 PSO) |
+| `patch_vertices` | int | `3` | Control points per patch for `VIO_PATCHES` (1–32). A shader with tessellation stages always draws patches, whatever `topology` says |
 
 ### Cull Mode Constants
 
@@ -143,6 +152,9 @@ Each stage also reports `storage_buffers` (SSBO / `StructuredBuffer`) as
 buffer binding for readback-free instancing (see
 [`vio_bind_storage_buffer`](buffers.md#vio_bind_storage_buffer) and
 `VIO_FEATURE_VERTEX_STORAGE`).
+
+A shader built with extra stages adds `"geometry"`, `"tess_control"` and / or
+`"tess_eval"` keys with the same shape.
 
 ## vio_set_uniform
 

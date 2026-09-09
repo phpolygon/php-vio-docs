@@ -66,6 +66,7 @@ Create a mesh from vertex data.
 | `VIO_LINES` | Every 2 vertices form a line |
 | `VIO_LINE_STRIP` | Connected line segments |
 | `VIO_POINTS` | Individual points |
+| `VIO_PATCHES` | Tessellation patches of `patch_vertices` control points (pipelines with `tess_control` / `tess_eval`) |
 
 ## vio_draw
 

@@ -65,6 +65,7 @@ $mesh = vio_mesh($ctx, [
 | `VIO_LINES` | Every 2 vertices form a line segment. |
 | `VIO_LINE_STRIP` | Connected line segments. |
 | `VIO_POINTS` | Individual points. |
+| `VIO_PATCHES` | Tessellation patches (`patch_vertices` control points each); implied by a shader with tessellation stages. |
 
 ## Shaders
 
