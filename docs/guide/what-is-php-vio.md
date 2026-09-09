@@ -27,6 +27,12 @@ php-vio abstracts GPU operations behind a vtable-based backend system. You write
 ### 2D + 3D in One Extension
 The 2D batch renderer handles rects, circles, lines, rounded rects, sprites, and text — all z-sorted and flushed in a single draw call. The 3D pipeline provides meshes, shaders, pipelines, instanced drawing, render targets, and cubemaps.
 
+| | |
+|---|---|
+| ![2D batch: shapes, sprites, shaped text](/gallery/2d_sprites_text.png) | ![3D pipeline: lit meshes](/gallery/3d_lit_meshes.png) |
+
+Both images are rendered headless by the extension itself — see the [Feature Gallery](/guide/gallery) for every feature path with a screenshot.
+
 ### Shader Pipeline
 Write your shaders in GLSL. php-vio compiles them to SPIR-V via glslang, then cross-compiles to the active backend's native format (GLSL for OpenGL, MSL for Metal, HLSL for D3D) using SPIRV-Cross. Shader reflection lets you introspect uniforms, textures, and vertex inputs at runtime.
 
