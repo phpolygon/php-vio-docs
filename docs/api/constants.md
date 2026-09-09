@@ -107,11 +107,53 @@ Complete reference of all `VIO_*` constants.
 | `VIO_FEATURE_TESSELLATION` | 2 |
 | `VIO_FEATURE_GEOMETRY` | 3 |
 | `VIO_FEATURE_MULTIVIEW` | 4 |
+| `VIO_FEATURE_3D_PIPELINE` | 5 |
+| `VIO_FEATURE_READ_PIXELS` | 6 |
+| `VIO_FEATURE_INSTANCED_DRAW` | 7 |
 | `VIO_FEATURE_RENDER_TARGET` | 8 |
+| `VIO_FEATURE_RENDER_TARGET_HDR` | 9 |
+| `VIO_FEATURE_RENDER_TARGET_DEPTH` | 10 |
+| `VIO_FEATURE_RENDER_TARGET_MSAA` | 11 |
 | `VIO_FEATURE_CUBEMAP` | 12 |
+| `VIO_FEATURE_DEPTH_BIAS` | 13 |
+| `VIO_FEATURE_SCISSOR` | 14 |
+| `VIO_FEATURE_TEXTURE_SWIZZLE` | 15 |
+| `VIO_FEATURE_NATIVE_2D_BATCH` | 16 |
+| `VIO_FEATURE_DEBUG_OUTPUT` | 17 |
+| `VIO_FEATURE_DSA` | 18 |
+| `VIO_FEATURE_BUFFER_STORAGE` | 19 |
+| `VIO_FEATURE_TEXTURE_STORAGE` | 20 |
+| `VIO_FEATURE_SEPARATE_SHADERS` | 21 |
 | `VIO_FEATURE_TEXTURE_3D` | 22 |
+| `VIO_FEATURE_RENDER_TARGET_CUBE` | 23 |
+| `VIO_FEATURE_MIPMAP_GEN` | 24 |
+| `VIO_FEATURE_MRT` | 25 |
+| `VIO_FEATURE_STORAGE_IMAGE` | 26 |
+| `VIO_FEATURE_VERTEX_STORAGE` | 30 |
 
-Query support at runtime with [`vio_supports_feature()`](/api/backend#vio-supports-feature).
+Query support at runtime with [`vio_supports_feature()`](/api/backend#vio-supports-feature). The per-backend matrix is in the [Backends guide](/guide/backends#backend-feature-matrix).
+
+## Pixel Formats
+
+Render-target attachments (`attachments`) and `vio_pipeline(['attachments' => …])`.
+
+| Constant | Value |
+|---|---|
+| `VIO_FORMAT_RGBA8` | 0 |
+| `VIO_FORMAT_RGBA16F` | 1 |
+| `VIO_FORMAT_RGBA32F` | 2 |
+| `VIO_FORMAT_R11G11B10F` | 3 |
+| `VIO_FORMAT_RG16F` | 4 |
+| `VIO_FORMAT_R16F` | 5 |
+| `VIO_FORMAT_R32F` | 6 |
+| `VIO_FORMAT_R8` | 7 |
+
+## Compute Access
+
+| Constant | Value |
+|---|---|
+| `VIO_COMPUTE_READ` | 0 |
+| `VIO_COMPUTE_WRITE` | 1 |
 
 ## Input Actions
 

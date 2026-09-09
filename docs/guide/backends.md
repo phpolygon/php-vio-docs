@@ -25,20 +25,22 @@ Auto-selection is platform-specific:
 | **Windows** | D3D12 > D3D11 > Vulkan > OpenGL |
 | **Linux** | Vulkan > OpenGL |
 
+Since v2.10 `"auto"` skips a backend that reports `VIO_FEATURE_3D_PIPELINE = 0` when a later candidate has one — Vulkan currently has no 3D pipeline, so Linux resolves to **OpenGL** and Windows without D3D falls through to OpenGL as well. `"null"` is never auto-selected. Override globally with the `vio.default_backend` INI setting.
+
 On macOS, Vulkan (via MoltenVK) is supported but opt-in — you must request it explicitly.
 
-## OpenGL 4.1 Core
+## OpenGL (3.3 – 4.6 Core)
 
-The most stable and widely supported backend.
+The most complete backend: every feature path exists here first.
 
 | Property | Value |
 |---|---|
-| API | OpenGL 4.1 Core Profile |
+| API | OpenGL Core Profile, negotiated 4.6 → 3.3 (`vio_gl_info()` shows what you got) |
 | Loader | GLAD (vendored) |
 | Platforms | macOS, Linux, Windows |
 | Headless | ✅ via hidden GLFW window |
 
-OpenGL is the default fallback when Vulkan and Metal are unavailable. It supports all php-vio features including `vio_read_pixels()` for framebuffer capture.
+OpenGL is the fallback on every platform. Compute, storage images and vertex-stage storage need a 4.3+ context (never on macOS, where Apple's GL stops at 4.1); the [feature ladder](https://github.com/phpolygon/php-vio/blob/main/CLAUDE.md#opengl-feature-ladder) lists which flag needs which core version or extension.
 
 ::: tip
 On macOS, OpenGL is deprecated by Apple but still functional at version 4.1. For production macOS apps, consider Metal.
@@ -54,6 +56,10 @@ Modern, low-overhead GPU API with explicit resource management.
 | Memory | Vulkan Memory Allocator (VMA) |
 | Platforms | Linux, Windows, macOS (MoltenVK) |
 | Headless | ✅ |
+
+::: warning Vulkan is 2D + compute only
+The Vulkan backend has the native 2D batch, basic render targets, compute and `vio_read_pixels()`, but **no 3D pipeline** (`vio_mesh`/`vio_shader`/`vio_pipeline`/`vio_draw` return `false`), no cubemaps and no HDR / depth-only / MSAA targets. Since v2.10 its feature flags say so, and `"auto"` prefers OpenGL over it. `vsync => false` selects the IMMEDIATE present mode (MAILBOX → FIFO fallback).
+:::
 
 ### macOS Setup (MoltenVK)
 
@@ -219,12 +225,32 @@ $active = vio_backend_name($ctx);  // e.g. "opengl"
 
 ## Backend Feature Matrix
 
-| Feature | OpenGL | Vulkan | Metal | D3D11 | D3D12 | Null |
+Source of truth: each backend's `supports_feature()`; `tests/core/074_backend_capability_matrix.phpt`
+pins it. Query at runtime with [`vio_supports_feature()`](/api/backend#vio-supports-feature).
+
+| Feature | OpenGL | D3D11 | D3D12 | Metal | Vulkan | Null |
 |---|---|---|---|---|---|---|
-| 3D Rendering | ✅ | ✅ | ✅ | ✅ | ✅ | — |
-| 2D Batch | ✅ | ✅ | ✅ | ✅ | ✅ | — |
-| Shader Compilation | ✅ | ✅ | ✅ | ✅ | ✅ | — |
-| `vio_read_pixels()` | ✅ | ⚠️ stub | ✅ | ⚠️ stub | ⚠️ stub | — |
-| Instanced Drawing | ✅ | ✅ | ✅ | ✅ | ✅ | — |
-| Render Targets | ✅ | ✅ | ✅ | ✅ | ✅ | — |
-| Cubemaps | ✅ | ✅ | ✅ | ✅ | ✅ | — |
+| 3D pipeline (`vio_mesh` / `vio_shader` / `vio_pipeline` / `vio_draw`) | ✅ | ✅ | ✅ | ✅ | ❌ | — |
+| Instanced drawing | ✅ | ✅ | ✅ | ✅ | ❌ | — |
+| Native 2D batch | ✅ | ✅ | ✅ | ✅ | ✅ | — |
+| Render targets (basic) | ✅ | ✅ | ✅ | ✅ | ✅ | — |
+| Render targets HDR / depth-only | ✅ | ✅ | ✅ | ✅ | ❌ | — |
+| Render targets MSAA (`samples`) | ✅ | ✅ | ❌ | ✅ | ❌ | — |
+| Cube render targets + `vio_generate_mipmaps` | ✅ | ✅ | ✅ | ✅ | ❌ | — |
+| Multiple render targets (`attachments`) | ✅ | ✅ | ✅ | ✅ | ❌ | — |
+| `vio_read_render_target` | ✅ | ✅ | ✅ | ✅ | ❌ | — |
+| Cubemaps | ✅ | ✅ | ✅ | ✅ | ❌ | — |
+| Compute | ✅ (GL ≥ 4.3) | ✅ | ✅ | ✅ | ✅ | — |
+| Storage images | ✅ (GL ≥ 4.3) | ✅ | ✅ | ✅ | ❌ | — |
+| Vertex-stage storage buffers | ✅ (GL ≥ 4.3) | ✅ | ✅ | ✅ | ❌ | — |
+| Async compute inside the frame | ✅ | ✅ | ✅ | ✅ | sync | — |
+| 3D textures | ✅ | ✅ | ✅ | ✅ | ✅ | — |
+| `vio_texture_update` | ✅ | ✅ | ✅ | ✅ | ❌ | — |
+| Anisotropic filtering | ✅ | ✅ | ✅ | ignored | ✅ | — |
+| Texture swizzle | ✅ (3.3+) | ❌ (CPU expand) | ✅ | ✅ | ✅ | — |
+| Tessellation / geometry shaders | GL version | ❌ | ❌ | ❌ | ❌ | — |
+| `vio_read_pixels()` / screenshots | ✅ | ✅ | ✅ | ✅ | ✅ | — |
+| Recording / streaming capture | ✅ | ✅ | ✅ | ✅ | ✅ | — |
+
+Row order of render targets differs (OpenGL row 0 = bottom, D3D/Metal row 0 = top) — see
+[Render Targets → Orientation](/api/render-targets#orientation).

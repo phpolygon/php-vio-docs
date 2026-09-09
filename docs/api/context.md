@@ -24,12 +24,13 @@ VioContext|false vio_create(string $backend = "auto", array $options = [])
 | `width` | int | `800` | Window width in screen coordinates |
 | `height` | int | `600` | Window height in screen coordinates |
 | `title` | string | `"vio"` | Window title |
-| `vsync` | bool | `true` | Enable vertical sync |
-| `samples` | int | `0` | MSAA sample count (0 = disabled) |
-| `debug` | bool | `false` | Enable debug output |
-| `headless` | bool | `false` | Create without visible window |
+| `vsync` | bool | `true` | Vertical sync. `false` removes any frame cap (D3D FLIP_DISCARD + tearing flag, Vulkan IMMEDIATE/MAILBOX) |
+| `samples` | int | `0` | Swapchain MSAA sample count (OpenGL via GLFW hint, Metal via resolve; D3D/Vulkan ignore it — use render targets) |
+| `debug` | bool | `false` | Validation / debug layers (D3D debug layer, Vulkan validation, Metal API validation, GL debug output) |
+| `headless` | bool | `false` | Offscreen context without a visible window; the framebuffer is exactly `width × height` on every backend |
+| `frame_count` | int | `2` | **D3D12 only:** frames in flight (2–3). 3 raises throughput but shrinks the per-frame descriptor/constant heaps — opt in only with headroom |
 
-When `$backend` is `"auto"`, the best available backend is selected based on the current platform: Metal > OpenGL on macOS, D3D12 > D3D11 > Vulkan > OpenGL on Windows, and Vulkan > OpenGL on Linux. See the [Backends guide](/guide/backends) for details.
+When `$backend` is `"auto"`, the best available backend is selected for the platform — Metal > OpenGL on macOS, D3D12 > D3D11 > Vulkan > OpenGL on Windows, Vulkan > OpenGL on Linux — **skipping backends that report no 3D pipeline** when a later candidate has one. Because Vulkan is 2D/compute-only today, Linux resolves to OpenGL. `"null"` is never chosen automatically. See the [Backends guide](/guide/backends) for details.
 
 **Returns:** `VioContext` on success, `false` on failure.
 

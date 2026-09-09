@@ -56,6 +56,50 @@ void vio_bind_buffer(VioContext $context, VioBuffer $buffer, int $binding = -1)
 
 Bind a buffer to its binding point. If `$binding` is `-1`, uses the binding specified at creation.
 
+## Vertex-stage storage buffers (readback-free instancing)
+
+A compute-written storage buffer can be bound directly to the **graphics**
+pipeline so a vertex shader reads per-instance data via `gl_InstanceIndex` — no
+GPU→CPU readback. Gate on `vio_supports_feature($ctx, VIO_FEATURE_VERTEX_STORAGE)`
+(true on OpenGL ≥ 4.3, D3D11, D3D12; false on backends without a vertex storage
+path, where callers fall back to `vio_storage_buffer_read()` + `vio_draw_instanced()`).
+
+### vio_bind_storage_buffer
+
+```php
+void vio_bind_storage_buffer(VioContext $context, VioBuffer $buffer, int $binding, int $access)
+```
+
+Bind a storage buffer to the graphics pipeline at storage-buffer `$binding`,
+readable from the vertex stage. `$access` is `VIO_COMPUTE_READ`. Call between
+`vio_bind_pipeline()` and `vio_draw_instanced_from_buffer()`. No-op when the
+backend lacks `VIO_FEATURE_VERTEX_STORAGE`.
+
+### vio_draw_instanced_from_buffer
+
+```php
+void vio_draw_instanced_from_buffer(VioContext $context, VioMesh $mesh, int $instanceCount)
+```
+
+Instanced draw whose per-instance data comes from the storage buffer bound via
+`vio_bind_storage_buffer()`, not a per-instance CPU buffer. The vertex shader
+indexes the bound buffer via `gl_InstanceIndex`.
+
+```php
+// Compute pass writes N model matrices into an SSBO...
+vio_compute_bind_buffer($ctx, $pipe, $matrixBuf, 0, VIO_COMPUTE_WRITE);
+vio_compute_dispatch($ctx, $pipe, $groups, 1, 1);
+
+// ...then the graphics pass reads them straight from the buffer — no readback.
+vio_bind_pipeline($ctx, $gfxPipe);
+vio_bind_storage_buffer($ctx, $matrixBuf, 0, VIO_COMPUTE_READ);
+vio_draw_instanced_from_buffer($ctx, $mesh, $n);
+
+// Vertex shader:
+//   layout(std430, binding = 0) readonly buffer Instances { mat4 models[]; };
+//   void main() { gl_Position = u_vp * models[gl_InstanceIndex] * vec4(aPos, 1.0); }
+```
+
 ## Buffer Type Constants
 
 | Constant | Value | Description |
