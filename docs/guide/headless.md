@@ -12,7 +12,11 @@ $ctx = vio_create("opengl", [
 ]);
 ```
 
-In headless mode, a hidden GLFW window is created. All rendering works identically — you just can't see it on screen.
+In headless mode, a hidden GLFW window is created. All rendering works identically — you just can't see it on screen. The framebuffer is exactly `width` × `height` pixels on every backend, independent of the host's display scaling.
+
+Everything in the [Feature Gallery](/guide/gallery) — including this shadow-mapped scene — was produced this way, by a plain `php` CLI run with no window:
+
+![Shadow-mapped scene rendered headless](/gallery/shadow_map.png)
 
 ## Capturing Pixels
 
@@ -26,7 +30,7 @@ vio_save_screenshot($ctx, "screenshot.png");
 ```
 
 ::: info
-`vio_read_pixels()` is currently only implemented for the OpenGL backend. Vulkan and Metal return stubs.
+`vio_read_pixels()` works on every backend (OpenGL, Vulkan, Metal, D3D11, D3D12) and returns the frame as rendered before present — `strlen($pixels) === $width * $height * 4`.
 :::
 
 ## Visual Regression Testing (VRT)

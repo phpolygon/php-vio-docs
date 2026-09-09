@@ -27,6 +27,7 @@ export default defineConfig({
             { text: 'What is php-vio?', link: '/guide/what-is-php-vio' },
             { text: 'Getting Started', link: '/guide/getting-started' },
             { text: 'Architecture', link: '/guide/architecture' },
+            { text: 'Feature Gallery', link: '/guide/gallery' },
           ],
         },
         {

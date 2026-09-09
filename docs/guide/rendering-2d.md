@@ -12,6 +12,10 @@ The batch starts with a capacity of **4096 items** (24,576 vertices) and grows d
 
 ## Shapes
 
+![vio_rect, vio_rounded_rect, vio_circle and vio_line in one z-sorted batch](/gallery/2d_shapes.png)
+
+*Rects, rounded rects, circles (filled and outlined) and lines — one batch, one draw call. Rendered headless by [`examples/gallery.php`](/guide/gallery).*
+
 ### Rectangle
 
 ```php
@@ -98,6 +102,10 @@ $size = vio_text_measure($font, "Hello, World!");
 ```
 
 Font rendering uses stb_truetype with a 4096x4096 atlas texture that supports multi-range Unicode — including Latin, Greek, Cyrillic, CJK, Hangul, and more (33,000+ glyphs). See the [Fonts API](/api/fonts) for full details.
+
+![Sprites and shaped text: tinted sprites, Arabic RTL, Thai clusters, word wrap](/gallery/2d_sprites_text.png)
+
+*`vio_sprite` with tint and scale next to `vio_text` — HarfBuzz shaping handles Arabic (RTL, joining) and Thai (clusters); `max_width` wraps the paragraph on the right.*
 
 ## Colors
 

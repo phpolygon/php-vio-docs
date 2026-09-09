@@ -5,6 +5,9 @@ hero:
   name: php-vio
   text: GPU Rendering for PHP
   tagline: OpenGL, Vulkan, Metal, Audio, Video Recording & Input — as a native PHP extension.
+  image:
+    src: /gallery/cubemap_environment.png
+    alt: Cube render target with roughness mip chain, rendered headless by php-vio
   actions:
     - theme: brand
       text: Get Started
@@ -12,6 +15,9 @@ hero:
     - theme: alt
       text: API Reference
       link: /api/context
+    - theme: alt
+      text: Feature Gallery
+      link: /guide/gallery
     - theme: alt
       text: View on GitHub
       link: https://github.com/phpgl/php-vio

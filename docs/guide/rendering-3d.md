@@ -126,6 +126,11 @@ vio_draw_instanced($ctx, $mesh, $matrices, 100);
 vio_draw_3d($ctx);
 ```
 
+| | |
+|---|---|
+| ![Lit meshes](/gallery/3d_lit_meshes.png) | ![Instancing](/gallery/instancing.png) |
+| `vio_draw` — three meshes, one Blinn-Phong shader | `vio_draw_instanced` — 400 cubes, one draw call |
+
 ## Textures
 
 ```php
@@ -144,6 +149,11 @@ vio_bind_texture($ctx, $tex, 0);  // unit 0
 ```
 
 See [Textures API](/api/textures) for filtering, wrapping, mipmaps, and async loading.
+
+| | |
+|---|---|
+| ![Sampler filter and wrap grid](/gallery/sampler_filter_wrap.png) | ![Anisotropic filtering](/gallery/anisotropy.png) |
+| `filter` × `wrap` — the same 4×4 checker with `VIO_FILTER_LINEAR` / `VIO_FILTER_NEAREST` and `VIO_WRAP_REPEAT` / `CLAMP` / `MIRROR` | `['anisotropy' => 16]` (right) keeps the far end of the plane sharp where trilinear (left) blurs |
 
 ## Uniform Buffers
 
