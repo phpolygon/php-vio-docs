@@ -195,14 +195,14 @@ $mesh = vio_mesh($ctx, [
 ]);
 
 $shader = vio_shader($ctx, [
-    "vertex" => "#version 410 core
+    "vertex" => "#version 450
         layout(location=0) in vec3 pos;
         layout(location=1) in vec3 col;
-        out vec3 vCol;
+        layout(location=0) out vec3 vCol;
         void main() { gl_Position = vec4(pos, 1.0); vCol = col; }",
-    "fragment" => "#version 410 core
-        in vec3 vCol;
-        out vec4 frag;
+    "fragment" => "#version 450
+        layout(location=0) in vec3 vCol;
+        layout(location=0) out vec4 frag;
         void main() { frag = vec4(vCol, 1.0); }",
 ]);
 

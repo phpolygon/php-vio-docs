@@ -50,6 +50,10 @@ vio_update_buffer($buf, $color, 64);  // Write at byte 64
 
 ## vio_bind_buffer
 
+::: warning
+Binding a uniform buffer to a **graphics** shader block currently works on D3D11 only (OpenGL flattens blocks to plain uniforms, D3D12 — and Metal, which stages the same way — replace the constant buffer with the shader's staged uniforms at draw time). Portable code sets block members with [`vio_set_uniform()`](/guide/shaders#setting-uniforms).
+:::
+
 ```php
 void vio_bind_buffer(VioContext $context, VioBuffer $buffer, int $binding = -1)
 ```
