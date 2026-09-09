@@ -160,19 +160,19 @@ $mesh = vio_mesh($ctx, [
 
 $shader = vio_shader($ctx, [
     "vertex" => "
-        #version 410 core
+        #version 450
         layout(location=0) in vec3 aPos;
         layout(location=1) in vec3 aColor;
-        out vec3 vColor;
+        layout(location=0) out vec3 vColor;
         void main() {
             gl_Position = vec4(aPos, 1.0);
             vColor = aColor;
         }
     ",
     "fragment" => "
-        #version 410 core
-        in vec3 vColor;
-        out vec4 fragColor;
+        #version 450
+        layout(location=0) in vec3 vColor;
+        layout(location=0) out vec4 fragColor;
         void main() {
             fragColor = vec4(vColor, 1.0);
         }
@@ -198,6 +198,8 @@ while (!vio_should_close($ctx)) {
 
 vio_destroy($ctx);
 ```
+
+The shaders are `#version 450` GLSL with explicit `layout(location = …)` qualifiers: php-vio compiles them to SPIR-V and cross-compiles to whatever the backend speaks (GLSL, HLSL, MSL), so the same source runs on OpenGL, Direct3D and Metal — swap `"opengl"` for `"auto"` and nothing else changes. See the [Shaders guide](/guide/shaders).
 
 ## Playing Audio
 
