@@ -4,7 +4,7 @@ layout: home
 hero:
   name: php-vio
   text: GPU Rendering for PHP
-  tagline: OpenGL, Vulkan, Metal, Audio, Video Recording & Input — as a native PHP extension.
+  tagline: OpenGL, Vulkan, Metal, Direct3D 11/12, Audio, Video Recording & Input — as a native PHP extension. Docs for v2.10.0.
   image:
     src: /gallery/cubemap_environment.png
     alt: Cube render target with roughness mip chain, rendered headless by php-vio
@@ -24,7 +24,7 @@ hero:
 
 features:
   - title: Multi-Backend GPU
-    details: OpenGL 4.1, Vulkan, Metal, D3D11/D3D12. Auto-selects the best backend or choose explicitly. One API for all platforms.
+    details: OpenGL 3.3–4.6, Direct3D 11/12, Metal, Vulkan. Auto-selects the best backend or choose explicitly. One API for all platforms.
   - title: 2D & 3D Rendering
     details: Z-sorted 2D batch renderer (rects, circles, sprites, text) and full 3D pipeline with meshes, shaders, pipelines, and instancing.
   - title: Shader Pipeline

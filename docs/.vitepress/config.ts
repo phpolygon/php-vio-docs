@@ -2,7 +2,7 @@ import { defineConfig } from 'vitepress'
 
 export default defineConfig({
   title: 'php-vio',
-  description: 'GPU Rendering, Audio, Video & Input for PHP',
+  description: 'GPU Rendering, Audio, Video & Input for PHP (php-vio v2.10)',
   lang: 'en-US',
   base: '/php-vio-docs/',
 
@@ -26,6 +26,7 @@ export default defineConfig({
           items: [
             { text: 'What is php-vio?', link: '/guide/what-is-php-vio' },
             { text: 'Getting Started', link: '/guide/getting-started' },
+            { text: "What's New", link: '/guide/whats-new' },
             { text: 'Architecture', link: '/guide/architecture' },
             { text: 'Feature Gallery', link: '/guide/gallery' },
           ],
@@ -90,6 +91,7 @@ export default defineConfig({
             { text: 'Shaders & Pipelines', link: '/api/shaders' },
             { text: 'Textures', link: '/api/textures' },
             { text: 'Buffers & Uniforms', link: '/api/buffers' },
+            { text: 'Compute', link: '/api/compute' },
             { text: 'Fonts & Text', link: '/api/fonts' },
             { text: 'Render Targets', link: '/api/render-targets' },
             { text: 'Cubemaps', link: '/api/cubemaps' },

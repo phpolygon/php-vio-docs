@@ -8,7 +8,7 @@ Functions for querying the active rendering backend.
 string vio_backend_name(VioContext $context)
 ```
 
-Returns the name of the active backend (e.g., `"opengl"`, `"vulkan"`, `"metal"`, `"null"`).
+Returns the name of the active backend: `"opengl"`, `"vulkan"`, `"metal"`, `"d3d11"`, `"d3d12"` or `"null"`. Use it to resolve what `"auto"` picked, e.g. for backend-specific conventions (render-target row order).
 
 ## vio_backend_count
 
@@ -44,5 +44,21 @@ Returns an array of all registered backend names.
 
 ```php
 $backends = vio_backends();
-// ["opengl", "vulkan", "metal", "null"]
+// macOS: ["metal", "vulkan", "opengl", "null"] — Windows: ["d3d12", "d3d11", "vulkan", "opengl", "null"]
 ```
+
+## vio_gpu_info
+
+```php
+array|false vio_gpu_info()
+```
+
+Adapter name, vendor and memory of the GPU the active backend uses (Metal reports `recommendedMaxWorkingSetSize` as `vram_bytes`).
+
+## vio_gl_info
+
+```php
+array|false vio_gl_info(VioContext $context)
+```
+
+OpenGL only: negotiated core version, GLSL version, renderer/vendor strings and the resolved capability flags of this context (which features the 3.3 → 4.6 ladder actually delivered).
