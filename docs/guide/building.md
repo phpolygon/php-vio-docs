@@ -14,14 +14,12 @@ php-vio is a standard PHP extension built with phpize/autotools. All features ar
 | `--with-ffmpeg` | Video recording & streaming | FFmpeg (libavcodec, libavformat, libavutil, libswscale) |
 | `--with-metal` | Metal backend (macOS only) | Metal + QuartzCore frameworks |
 | `--with-ffx` | AMD FidelityFX FSR 3.1 [native upscaler](/api/upscaling) (Windows: on by default; elsewhere opt-in) | None at build time (vendored MIT headers); `amd_fidelityfx_*.dll` at run time |
-| `--with-dlss=DIR` | NVIDIA DLSS Super Resolution / DLAA [native upscaler](/api/upscaling) through NGX (off by default) | The DLSS SDK at DIR (NGX headers, static `nvsdk_ngx_d.lib` / `libnvsdk_ngx.a`) – NVIDIA RTX SDK licence, not part of php-vio; `nvngx_dlss.dll` / `libnvidia-ngx-dlss.so.*` at run time |
 
-::: info DLSS builds
-The DLSS SDK (github.com/NVIDIA/DLSS) is under NVIDIA's licence, so the public php-vio binaries are
-built without it. A game that wants DLSS builds php-vio itself with `--with-dlss=C:\sdks\DLSS`
-(Windows: `nvsdk_ngx_d.lib` matches PHP's `/MD` runtime) and ships `nvngx_dlss.dll` from the SDK's
-`lib/Windows_x86_64/rel/` next to its executable (or points `vio.dlss_path` at it). The Linux path
-(`libnvsdk_ngx.a`) is not tested yet.
+::: info DLSS
+php-vio has no DLSS build option and contains no NVIDIA code – the DLSS SDK is under NVIDIA's
+licence. DLSS comes as a separately built plugin (`vio_dlss.dll` / `libvio_dlss.so`) that a game
+ships together with NVIDIA's `nvngx_dlss.dll`; php-vio loads it at run time through its
+[upscaler plugin ABI](/api/upscaling#upscaler-plugins).
 :::
 
 ## Minimal Build

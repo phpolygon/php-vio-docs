@@ -166,7 +166,7 @@ Render-target attachments (`attachments`) and `vio_pipeline(['attachments' => โ€
 | Constant | Value | Description |
 |---|---|---|
 | `VIO_UPSCALER_FSR3` | 1 | AMD FidelityFX FSR 3.1 (D3D12, Vulkan) |
-| `VIO_UPSCALER_DLSS` | 2 | NVIDIA DLSS Super Resolution / DLAA through NGX (D3D12, Vulkan; builds with `--with-dlss`) |
+| `VIO_UPSCALER_DLSS` | 2 | NVIDIA DLSS Super Resolution / DLAA through NGX (D3D12, Vulkan; with the `vio_dlss` [plugin](/api/upscaling#upscaler-plugins)) |
 | `VIO_UPSCALER_XESS` | 3 | Reserved |
 | `VIO_UPSCALE_NATIVE_AA` | 0 | Render = display (anti-aliasing only) |
 | `VIO_UPSCALE_QUALITY` | 1 | Display รท 1.5 per axis |

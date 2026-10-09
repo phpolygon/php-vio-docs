@@ -14,40 +14,53 @@ when a provider runs on the device. `VIO_UPSCALER_XESS` is reserved.
 :::
 
 ::: tip DLSS availability
-`VIO_UPSCALER_DLSS` exists only in builds configured with `--with-dlss=DIR` (the DLSS SDK – see
-[Building](/guide/building)); other builds report *php-vio was built without DLSS*. It needs an
-NVIDIA RTX GPU, a current driver and the DLSS runtime `nvngx_dlss.dll` (Windows) /
-`libnvidia-ngx-dlss.so.<version>` (Linux) from the DLSS SDK (`lib/…/rel/`), shipped by the game.
+php-vio contains no DLSS code: `VIO_UPSCALER_DLSS` is served by a **plugin** – `vio_dlss.dll`
+(Windows) / `libvio_dlss.so` (Linux) – that php-vio loads at run time through its
+[upscaler plugin ABI](#upscaler-plugins). Without the plugin, DLSS reports
+*vio_dlss.dll not found (…)*. With it, DLSS needs an NVIDIA RTX GPU, a current driver and the DLSS
+runtime `nvngx_dlss.dll` / `libnvidia-ngx-dlss.so.<version>` from the DLSS SDK (`lib/…/rel/`).
 Without one of them `vio_upscaler_supported($ctx, VIO_UPSCALER_DLSS)` is `false` and `reason`
-says which (missing runtime, not an RTX GPU, driver too old – with the version it needs).
+says which (missing plugin or a plugin of another ABI, missing runtime, not an RTX GPU, driver too
+old – with the version it needs).
 :::
 
 ::: warning DLSS licence and branding
-DLSS is licensed by NVIDIA under the NVIDIA RTX SDK licence; php-vio contains none of it. A game
-that ships DLSS must show the DLSS / NVIDIA RTX attribution (splash screen or credits, per the
-licence and the *RTX UI Developer Guidelines*) and notify NVIDIA before its release. Give the game
-its own NGX project id (`vio.dlss_project_id`, see below).
+DLSS is licensed by NVIDIA under the NVIDIA RTX SDK licence, which allows its parts to be passed on
+only as object code inside an application – never under an open-source licence. That is why the
+DLSS adapter is a separate, privately distributed plugin and not part of php-vio. A game that ships
+DLSS:
+
+- ships the plugin and `nvngx_dlss.dll` **with the game only** (next to its executable or
+  `php_vio`), never as part of php-vio;
+- shows the DLSS / NVIDIA RTX attribution (splash screen or credits, per the licence and the
+  *RTX UI Developer Guidelines*);
+- notifies NVIDIA before its release;
+- uses its own NGX project id (`vio.dlss_project_id`, a random GUID – see below).
 :::
 
 ## Finding the runtime
 
 The runtime matching the context's API is looked for on first use, never linked:
 
-1. `vio.ffx_path` / `VIO_FFX_PATH` (FSR), `vio.dlss_path` / `VIO_DLSS_PATH` (DLSS) – a directory
-   or the file itself. When set, this is the **only** place searched.
+1. `vio.ffx_path` / `VIO_FFX_PATH` (FSR), `vio.dlss_plugin_path` / `VIO_DLSS_PLUGIN` (the DLSS
+   plugin), `vio.dlss_path` / `VIO_DLSS_PATH` (the DLSS runtime) – a directory or the file itself.
+   When set, this is the **only** place searched.
 2. Otherwise: the directory of the PHP executable (or the game's executable), the directory
-   of `php_vio`, then `PATH` (Linux: `LD_LIBRARY_PATH` for DLSS).
+   of `php_vio` (DLSS runtime: also the plugin's directory), then `PATH` (Linux: `LD_LIBRARY_PATH`
+   for DLSS).
 
-FSR's library is loaded by php-vio; DLSS's runtime is loaded by NGX, php-vio only checks it is
-there and hands its directory to NGX.
+FSR's library and the DLSS plugin are loaded by php-vio; the DLSS runtime is loaded by NGX inside
+the plugin, which only checks it is there and hands its directory to NGX. A loaded plugin stays for
+the process; a missing or refused one is looked for again on the next call.
 
 ```ini
 ; php.ini
 vio.ffx_path = "C:\Games\MyGame\redist"
+vio.dlss_plugin_path = "C:\Games\MyGame\redist\vio_dlss.dll"
 vio.dlss_path = "C:\Games\MyGame\redist"
 ; DLSS: how NGX identifies the application (NVSDK_NGX_*_Init_with_ProjectID, engine type CUSTOM).
 ; Must look like a random GUID - the driver rejects others with "invalid parameter".
-vio.dlss_project_id = "0f8c2d6e-…"        ; default: php-vio's own id
+vio.dlss_project_id = "0f8c2d6e-…"        ; default (empty): the plugin's own id
 vio.dlss_engine_version = "1.4.0"         ; default: the php-vio version
 ```
 
@@ -109,6 +122,7 @@ array vio_upscaler_info(VioContext $context, VioUpscaler|int $which = VIO_UPSCAL
 | `version` | The provider version, e.g. `3.1.4` (FSR), `310.9.1` (DLSS) |
 | `driver` | The graphics driver version the provider checked, e.g. `617.42` (DLSS; also when unsupported) |
 | `library` | Path of the loaded runtime |
+| `plugin` | The plugin library the provider came from (`vio_dlss.dll`), empty when built in or not loaded |
 | `device` | Vulkan: device features / extensions enabled for native upscalers at context creation |
 | `live` | Upscalers alive on the backend |
 | `host_bytes` | CPU memory the providers hold |
@@ -196,19 +210,53 @@ Destroys the upscaler now; inside a frame the work recorded so far is finished f
 ## Backend notes
 
 - **D3D12** – the resources are handed over in `PIXEL_SHADER_RESOURCE`; afterwards the graphics
-  state is restored. WARP accepts the context but faults in FSR's passes, so a software adapter
-  reports *needs a hardware GPU*; headless contexts use the GPU with `'headless_hardware' => true`.
+  state is restored. Whether a software adapter is enough is the provider's call: WARP accepts
+  FSR's context but faults in its passes, so FSR and DLSS report *needs a hardware GPU*; headless
+  contexts use the GPU with `'headless_hardware' => true`.
 - **Vulkan** – the open pass is closed and resumed; before the device is created php-vio enables
   what the FidelityFX runtime picks from the device's offer (subgroup size control, int16, 16-bit
   storage, separate depth/stencil layouts, `VK_KHR_get_memory_requirements2`), listed in
   `vio_upscaler_info()['device']`.
 - **Build** – `--with-ffx` (Windows: on by default, no link dependency; Linux/macOS: opt-in, the
-  FidelityFX runtime ships for Windows only). `--with-dlss=DIR` (off by default everywhere; links
-  NGX's static library from the DLSS SDK).
-- **DLSS** – NGX directly (no Streamline). NGX is initialised once per device on first use and shut
+  FidelityFX runtime ships for Windows only). DLSS needs no build option: it is the plugin.
+- **DLSS** – the plugin talks to NGX directly (no Streamline). NGX is initialised once per device on first use and shut
   down before the device goes; creating an upscaler records NGX's setup on its own command list,
   also inside a frame. D3D12: inputs go to `NON_PIXEL_SHADER_RESOURCE`, the output to
   `UNORDERED_ACCESS` and back. Vulkan: php-vio enables NGX's instance and device extensions
   (`VK_NVX_binary_import`, `VK_NVX_image_view_handle`, `VK_KHR_push_descriptor`, buffer device
   addresses) when the runtime is present. Clean under the D3D12 debug layer and Vulkan validation;
   Vulkan *synchronisation* validation reports hazards inside NGX's own evaluation on reset frames.
+
+## Upscaler plugins
+
+A provider can live outside php-vio. `include/vio_upscale_plugin.h` (installed with the
+extension's headers) is the whole contract – plain C, versioned with `VIO_UPSCALE_PLUGIN_ABI`
+(currently `1`), no php-vio internals; graphics objects are native handles behind `void *`.
+
+```c
+#include "vio_upscale_plugin.h"
+
+VIO_UPSCALE_PLUGIN_EXPORT const vio_upscale_provider *
+vio_upscale_plugin_get(uint32_t abi, const vio_upscale_host_api *host);
+```
+
+php-vio calls the export once with its ABI and a **host table** – `log` (errors and warnings
+become PHP warnings), counted `alloc` / `free` (`host_bytes`), `ini`, `find_file`,
+`load_library`, `symbol`, `host_version`, `plugin_path`. The plugin returns its **provider
+table**: `abi`, `size`, `id` (`VIO_UPSCALER_*`), `name`, `version`, `flags`, and `supported`,
+`create`, `dispatch`, `query`, `destroy` – optionally `vk_device_needs`, `render_size`,
+`device_release`, `vk_extensions`.
+
+| Handed to the provider | D3D12 | Vulkan |
+|---|---|---|
+| Device | `ID3D12Device *`, `software_adapter` | `VkInstance`, `VkPhysicalDevice`, `VkDevice`, `vkGetInstanceProcAddr`, `vkGetDeviceProcAddr` |
+| Creation (`VIO_UPSCALE_PROVIDER_CREATE_COMMANDS`) | an open `ID3D12GraphicsCommandList *`, executed and waited for after `create()` – also inside a frame | an open `VkCommandBuffer`, likewise |
+| Dispatch | the frame's command list | the frame's command buffer, outside any render pass |
+| Images | `ID3D12Resource *`, `DXGI_FORMAT`, size, resting in `PIXEL_SHADER_RESOURCE` (`STATE_SHADER_READ`) or `UNORDERED_ACCESS` (`STATE_GENERAL`) | `VkImage` + `VkImageView`, `VkFormat`, size, resting in `SHADER_READ_ONLY_OPTIMAL` or `GENERAL` |
+| Before device creation | – | instance / device extensions (`vk_extensions`) and features (`vk_device_needs`) the provider wants |
+
+The provider may change pipeline, descriptor-heap and root-signature state – php-vio restores its
+own and handles render-pass boundaries and the memory barriers around a dispatch – but it must leave
+every image in the state / layout it was handed over in. php-vio refuses a library without the
+export, a `NULL` provider (ABI not offered), another `abi`, a smaller `size`, another `id` or
+missing required slots: `supported` is `false`, `reason` says why, no warning.

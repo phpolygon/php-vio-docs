@@ -24,10 +24,12 @@ binaries for Linux x86_64/arm64, macOS x86_64/arm64 and Windows x64 (ts + nts) o
   executable or php_vio); without it `vio_upscaler_supported()` is `false` with a reason and no warning.
   One provider interface for FSR, DLSS and XeSS: jitter and motion vectors in render pixels.
   `--with-ffx` (on by default on Windows), `VIO_FEATURE_UPSCALER_NATIVE`, `VIO_UPSCALER_*`, `VIO_UPSCALE_*`.
-- **DLSS Super Resolution / DLAA** – `VIO_UPSCALER_DLSS` through NVIDIA NGX on D3D12 and Vulkan, in builds
-  configured `--with-dlss=DIR` (off by default; the SDK is NVIDIA-licensed and not part of php-vio). Same
+- **DLSS Super Resolution / DLAA** – `VIO_UPSCALER_DLSS` through NVIDIA NGX on D3D12 and Vulkan, served by a
+  plugin (`vio_dlss.dll`) behind the new versioned [upscaler plugin ABI](/api/upscaling#upscaler-plugins) –
+  php-vio itself contains no NVIDIA code (the SDK is NVIDIA-licensed). Same
   inputs and conventions as FSR; quality modes use NGX's optimal render size, `VIO_UPSCALE_NATIVE_AA` is DLAA.
-  Runtime `nvngx_dlss.dll` via `vio.dlss_path`, NGX project id via `vio.dlss_project_id`.
+  Plugin via `vio.dlss_plugin_path`, runtime `nvngx_dlss.dll` via `vio.dlss_path`, NGX project id via
+  `vio.dlss_project_id`; `vio_upscaler_info()['plugin']` names the plugin loaded.
 - **Provider render sizes** – [`vio_upscaler_render_size()`](/api/upscaling#vio-upscaler-render-size) tells
   the render size of a quality mode before creating an upscaler; `vio_upscaler_info()` gains `driver`.
 
