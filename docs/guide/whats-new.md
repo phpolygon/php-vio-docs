@@ -1,9 +1,34 @@
 # What's New
 
-This documentation describes **php-vio v2.10.0** (2026-09-09). The full commit-level history is in
+This documentation describes **php-vio v2.32.0** (2026-10-09). The full commit-level history is in
 [`CHANGELOG.md`](https://github.com/phpolygon/php-vio/blob/main/CHANGELOG.md); every release ships
 binaries for Linux x86_64/arm64, macOS x86_64/arm64 and Windows x64 (ts + nts) on the
 [Releases](https://github.com/phpolygon/php-vio/releases) page.
+
+## 2.32.0
+
+- **8 colour attachments** — `VIO_MAX_COLOR_ATTACHMENTS` = 8 (was 4) on every backend, enough for a
+  temporal G-buffer (colour planes, motion vectors, reactive mask).
+- **Depth of a colour target** — [`vio_render_target_texture($rt, VIO_RT_DEPTH)`](/api/render-targets#vio-render-target-texture)
+  samples the depth of plain and MRT targets (`VIO_FEATURE_RENDER_TARGET_DEPTH_SAMPLE`).
+- **Raw readback** — [`vio_read_render_target(…, ['raw' => true])`](/api/render-targets#vio-read-render-target)
+  returns float / half / packed texels bit-exact instead of clamped RGBA8.
+- **Render targets as storage images** — `'storage' => true` lets a compute kernel read and write
+  the attachments ([details](/api/render-targets#render-targets-as-storage-images);
+  `VIO_FEATURE_RENDER_TARGET_STORAGE`, D3D12 and Vulkan).
+- **FSR 3.1** – [`vio_upscaler_create()` / `vio_upscaler_dispatch()`](/api/upscaling) run AMD FidelityFX FSR 3.1 on
+  D3D12 and Vulkan through the FidelityFX runtime, loaded at run time (`vio.ffx_path`, next to the PHP
+  executable or php_vio); without it `vio_upscaler_supported()` is `false` with a reason and no warning.
+  One provider interface for FSR, DLSS and XeSS: jitter and motion vectors in render pixels.
+  `--with-ffx` (on by default on Windows), `VIO_FEATURE_UPSCALER_NATIVE`, `VIO_UPSCALER_*`, `VIO_UPSCALE_*`.
+- **DLSS Super Resolution / DLAA** – `VIO_UPSCALER_DLSS` through NVIDIA NGX on D3D12 and Vulkan, served by a
+  plugin (`vio_dlss.dll`) behind the new versioned [upscaler plugin ABI](/api/upscaling#upscaler-plugins) –
+  php-vio itself contains no NVIDIA code (the SDK is NVIDIA-licensed). Same
+  inputs and conventions as FSR; quality modes use NGX's optimal render size, `VIO_UPSCALE_NATIVE_AA` is DLAA.
+  Plugin via `vio.dlss_plugin_path`, runtime `nvngx_dlss.dll` via `vio.dlss_path`, NGX project id via
+  `vio.dlss_project_id`; `vio_upscaler_info()['plugin']` names the plugin loaded.
+- **Provider render sizes** – [`vio_upscaler_render_size()`](/api/upscaling#vio-upscaler-render-size) tells
+  the render size of a quality mode before creating an upscaler; `vio_upscaler_info()` gains `driver`.
 
 ## 2.10.0
 
