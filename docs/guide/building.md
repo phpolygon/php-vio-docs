@@ -13,6 +13,7 @@ php-vio is a standard PHP extension built with phpize/autotools. All features ar
 | `--with-vulkan` | Vulkan backend | Vulkan SDK |
 | `--with-ffmpeg` | Video recording & streaming | FFmpeg (libavcodec, libavformat, libavutil, libswscale) |
 | `--with-metal` | Metal backend (macOS only) | Metal + QuartzCore frameworks |
+| `--with-ffx` | AMD FidelityFX FSR 3.1 [native upscaler](/api/upscaling) (Windows: on by default; elsewhere opt-in) | None at build time (vendored MIT headers); `amd_fidelityfx_*.dll` at run time |
 
 ## Minimal Build
 
@@ -77,6 +78,7 @@ These are included in the repository and compiled automatically:
 | stb_image_write | `vendor/stb/` | PNG saving |
 | VMA | `vendor/vma/` | Vulkan Memory Allocator |
 | miniaudio | `vendor/miniaudio/` | Audio engine |
+| ffx-api | `vendor/ffx-api/` | FidelityFX API headers (MIT, SDK v1.1.4) |
 
 ## Build System Files
 

@@ -17,6 +17,14 @@ binaries for Linux x86_64/arm64, macOS x86_64/arm64 and Windows x64 (ts + nts) o
   the attachments ([details](/api/render-targets#render-targets-as-storage-images);
   `VIO_FEATURE_RENDER_TARGET_STORAGE`, D3D12 and Vulkan).
 
+## Unreleased (native upscalers)
+
+- **FSR 3.1** – [`vio_upscaler_create()` / `vio_upscaler_dispatch()`](/api/upscaling) run AMD FidelityFX FSR 3.1 on
+  D3D12 and Vulkan through the FidelityFX runtime, loaded at run time (`vio.ffx_path`, next to the PHP
+  executable or php_vio); without it `vio_upscaler_supported()` is `false` with a reason and no warning.
+  One provider interface for FSR, DLSS and XeSS: jitter and motion vectors in render pixels.
+  `--with-ffx` (on by default on Windows), `VIO_FEATURE_UPSCALER_NATIVE`, `VIO_UPSCALER_*`, `VIO_UPSCALE_*`.
+
 ## 2.10.0
 
 - **Honest capability flags** — `vio_supports_feature()` now reports exactly what a backend can do:

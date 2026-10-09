@@ -94,6 +94,7 @@ export default defineConfig({
             { text: 'Compute', link: '/api/compute' },
             { text: 'Fonts & Text', link: '/api/fonts' },
             { text: 'Render Targets', link: '/api/render-targets' },
+            { text: 'Native Upscalers', link: '/api/upscaling' },
             { text: 'Cubemaps', link: '/api/cubemaps' },
           ],
         },

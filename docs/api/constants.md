@@ -132,6 +132,7 @@ Complete reference of all `VIO_*` constants.
 | `VIO_FEATURE_VERTEX_STORAGE` | 30 |
 | `VIO_FEATURE_RENDER_TARGET_DEPTH_SAMPLE` | 68 |
 | `VIO_FEATURE_RENDER_TARGET_STORAGE` | 69 |
+| `VIO_FEATURE_UPSCALER_NATIVE` | 70 |
 
 Query support at runtime with [`vio_supports_feature()`](/api/backend#vio-supports-feature). The per-backend matrix is in the [Backends guide](/guide/backends#backend-feature-matrix).
 
@@ -157,6 +158,21 @@ Render-target attachments (`attachments`) and `vio_pipeline(['attachments' => �
 | `VIO_MAX_COLOR_ATTACHMENTS` | 8 | Colour attachments per render target (`attachments`) |
 | `VIO_RT_DEPTH` | -1 | [`vio_render_target_texture()`](/api/render-targets#vio-render-target-texture): the depth of a colour target |
 | `VIO_RT_ALL_LAYERS` | -2 | [`vio_bind_render_target()`](/api/render-targets#vio-bind-render-target): every face / layer at once |
+
+## Native Upscalers
+
+[`vio_upscaler_*`](/api/upscaling).
+
+| Constant | Value | Description |
+|---|---|---|
+| `VIO_UPSCALER_FSR3` | 1 | AMD FidelityFX FSR 3.1 (D3D12, Vulkan) |
+| `VIO_UPSCALER_DLSS` | 2 | Reserved |
+| `VIO_UPSCALER_XESS` | 3 | Reserved |
+| `VIO_UPSCALE_NATIVE_AA` | 0 | Render = display (anti-aliasing only) |
+| `VIO_UPSCALE_QUALITY` | 1 | Display ÷ 1.5 per axis |
+| `VIO_UPSCALE_BALANCED` | 2 | Display ÷ 1.7 |
+| `VIO_UPSCALE_PERFORMANCE` | 3 | Display ÷ 2 |
+| `VIO_UPSCALE_ULTRA_PERFORMANCE` | 4 | Display ÷ 3 |
 
 ## Compute Access
 
