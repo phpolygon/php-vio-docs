@@ -31,7 +31,8 @@ Create an offscreen render target. New targets start defined: colour cleared to 
 | `cube` | bool | `false` | Cube render target with six faces; use `size` instead of `width`/`height` |
 | `size` | int | — | Face size of a cube target (*required with `cube`) |
 | `mipmaps` | bool | `false` | Allocate a full mip chain so [`vio_generate_mipmaps()`](#vio-generate-mipmaps) / `textureLod` work |
-| `attachments` | int[] | `[VIO_FORMAT_RGBA8]` | Multiple render targets: one `VIO_FORMAT_*` per colour attachment (up to 4). Overrides `hdr` |
+| `attachments` | int[] | `[VIO_FORMAT_RGBA8]` | Multiple render targets: one `VIO_FORMAT_*` per colour attachment (up to `VIO_MAX_COLOR_ATTACHMENTS` = 8; on Vulkan more than 4 needs a device with that `maxColorAttachments`). Overrides `hdr` |
+| `storage` | bool | `false` | The colour attachments double as compute storage images ([below](#render-targets-as-storage-images)). Single-sample 2D colour targets; needs `VIO_FEATURE_RENDER_TARGET_STORAGE` (D3D12, Vulkan) |
 
 ```php
 $scene  = vio_render_target($ctx, ["width" => 1280, "height" => 720]);
@@ -111,6 +112,19 @@ The colour attachment (`$attachment` indexes the MRT list) — or the depth text
 target — as a `VioTexture` for sampling in later passes. The texture is owned by the render
 target; keep the target alive while you use it.
 
+`VIO_RT_DEPTH` selects the **depth of a colour target** (plain or MRT) — the scene depth a
+temporal resolve, motion-vector dilation or SSAO reads next to the G-buffer. It needs
+`VIO_FEATURE_RENDER_TARGET_DEPTH_SAMPLE` (OpenGL, D3D11, D3D12, Vulkan, Metal) and a single-sample
+2D target (no `samples`, `cube`, `layers` or active `rate_map`; those return `false`). Like a
+shadow map it samples NEAREST with a white border and is readable once the target is unbound or
+another target is bound; binding the target again keeps depth-testing against it.
+
+```php
+$gbuf  = vio_render_target($ctx, ["width" => 1280, "height" => 720,
+           "attachments" => [VIO_FORMAT_RGBA16F, VIO_FORMAT_RG16F]]);   // colour + motion
+$depth = vio_render_target_texture($gbuf, VIO_RT_DEPTH);               // sampler2D, .r = depth
+```
+
 ## vio_render_target_cubemap
 
 ```php
@@ -124,11 +138,28 @@ environment-probe path: roughness selects the mip level.
 ## vio_read_render_target
 
 ```php
-string|false vio_read_render_target(VioRenderTarget $target, int $face = -1, int $attachment = 0)
+string|false vio_read_render_target(VioRenderTarget $target, int $face = -1, int $attachment = 0, ?array $options = null)
 ```
 
 Read a target back as RGBA8 bytes (`width * height * 4`), also mid-frame. HDR targets are
 converted to 8 bit, depth-only targets come back as a grey depth ramp, cube targets need `$face`.
+
+With `['raw' => true]` a colour attachment comes back **in its own format**, bit-exact and
+unclamped: `width * height * bytes-per-texel`, row 0 at the top like the RGBA8 readback.
+
+| Format | Bytes per texel | Layout |
+|---|---|---|
+| `RGBA16F` / `RG16F` / `R16F` | 8 / 4 / 2 | IEEE halves, little endian |
+| `RGBA32F` / `R32F` | 16 / 4 | IEEE floats, little endian |
+| `R11G11B10F` / `RGB10A2` | 4 | one packed uint32, R in the low bits |
+| `RGBA8` / `R8` | 4 / 1 | bytes, RGBA8 in R, G, B, A order on every backend |
+
+```php
+$mv = vio_read_render_target($gbuf, -1, 1, ['raw' => true]);   // RG16F motion vectors
+$xy = unpack('v2', $mv);                                         // half bits of texel (0, 0)
+```
+
+Depth-only targets refuse `raw`.
 
 ## vio_generate_mipmaps
 
@@ -138,6 +169,32 @@ bool vio_generate_mipmaps(VioContext $context, VioRenderTarget|VioTexture|VioCub
 
 Build the mip chain of a render target created with `mipmaps => true`, a texture or a cubemap.
 Requires `VIO_FEATURE_MIPMAP_GEN` (OpenGL, D3D11, D3D12, Metal).
+
+## Render targets as storage images
+
+A target created with `'storage' => true` is drawn into like any other and its colour attachments
+can also be read and written by a compute kernel — a TAA history or an upscaler output updated in
+compute and then sampled or drawn into again. Bind an attachment with
+[`vio_compute_bind_image()`](/api/compute) and declare it in GLSL with the attachment's own format
+qualifier:
+
+```php
+$hist = vio_render_target($ctx, ["width" => $w, "height" => $h,
+          "attachments" => [VIO_FORMAT_RGBA16F], "storage" => true]);
+vio_compute_bind_image($ctx, $resolve, vio_render_target_texture($hist, 0), 0, VIO_COMPUTE_WRITE);
+vio_compute_dispatch($ctx, $resolve, $w / 8, $h / 8, 1, ['async' => true]);   // inside the frame
+```
+
+```glsl
+layout(binding = 0, rgba16f) uniform image2D u_history;
+```
+
+Inside `vio_begin()` / `vio_end()` dispatch with `['async' => true]` so the kernel runs in order
+with the draws around it; outside a frame a plain (synchronous) dispatch works. Single-sample 2D
+colour targets only. `VIO_FEATURE_RENDER_TARGET_STORAGE` is set on D3D12
+(`ALLOW_UNORDERED_ACCESS`, typed UAV in the attachment's format) and Vulkan (`STORAGE` usage, the
+images rest in `GENERAL`; RGBA8 attachments are stored as R8G8B8A8 there, and the 2D batch does
+not draw into such targets). OpenGL, D3D11 and Metal refuse the option.
 
 ## vio_destroy_render_target
 

@@ -130,6 +130,8 @@ Complete reference of all `VIO_*` constants.
 | `VIO_FEATURE_MRT` | 25 |
 | `VIO_FEATURE_STORAGE_IMAGE` | 26 |
 | `VIO_FEATURE_VERTEX_STORAGE` | 30 |
+| `VIO_FEATURE_RENDER_TARGET_DEPTH_SAMPLE` | 68 |
+| `VIO_FEATURE_RENDER_TARGET_STORAGE` | 69 |
 
 Query support at runtime with [`vio_supports_feature()`](/api/backend#vio-supports-feature). The per-backend matrix is in the [Backends guide](/guide/backends#backend-feature-matrix).
 
@@ -147,6 +149,14 @@ Render-target attachments (`attachments`) and `vio_pipeline(['attachments' => â€
 | `VIO_FORMAT_R16F` | 5 |
 | `VIO_FORMAT_R32F` | 6 |
 | `VIO_FORMAT_R8` | 7 |
+
+## Render Targets
+
+| Constant | Value | Description |
+|---|---|---|
+| `VIO_MAX_COLOR_ATTACHMENTS` | 8 | Colour attachments per render target (`attachments`) |
+| `VIO_RT_DEPTH` | -1 | [`vio_render_target_texture()`](/api/render-targets#vio-render-target-texture): the depth of a colour target |
+| `VIO_RT_ALL_LAYERS` | -2 | [`vio_bind_render_target()`](/api/render-targets#vio-bind-render-target): every face / layer at once |
 
 ## Compute Access
 
