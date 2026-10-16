@@ -8,9 +8,108 @@ Functions for audio playback, control, and 3D positioning.
 VioSound|false vio_audio_load(string $path)
 ```
 
-Load an audio file. Supported formats: WAV, MP3, FLAC, OGG Vorbis.
+Load an audio file. Supported formats: WAV, MP3, FLAC, Ogg Vorbis, Ogg Opus.
 
-The miniaudio engine is lazily initialized on the first call.
+The miniaudio engine is lazily initialized on the first call. Ogg files and paths through a PHP stream wrapper (`phar://`, `data://`, …) are read into memory and decoded from there, so audio packed into a PHAR plays directly.
+
+## vio_audio_load_data
+
+```php
+VioSound|false vio_audio_load_data(string $data)
+```
+
+Load a sound from encoded bytes (any format `vio_audio_load()` reads). The sound keeps the bytes until it is freed. An empty string throws `ValueError`.
+
+## vio_audio_formats
+
+```php
+array vio_audio_formats()
+```
+
+What this build can decode and encode, plus the codec library versions. Use it to check whether the runtime plays Opus before choosing an asset format:
+
+```php
+[
+    'decode'   => ['wav', 'flac', 'mp3', 'vorbis', 'opus'],
+    'encode'   => ['opus', 'vorbis'],
+    'versions' => ['opus' => 'libopus 1.5.2', 'vorbis' => 'Xiph.Org libVorbis 1.3.7'],
+]
+```
+
+Releases before Opus/Vorbis support do not have this function: `function_exists('vio_audio_formats')` is the feature test.
+
+## vio_audio_info
+
+```php
+array|false vio_audio_info(string $source, array $options = [])
+```
+
+Probe a file without an audio device. `$source` is a path (any stream wrapper) or, with `['data' => true]`, the encoded bytes.
+
+| Key | Type | Description |
+|---|---|---|
+| `format` | string | `wav`, `flac`, `mp3`, `vorbis` or `opus` |
+| `channels` | int | Channel count |
+| `sample_rate` | int | Rate of the decoded PCM (Opus always decodes at 48000) |
+| `input_sample_rate` | int | Opus: rate the encoder was fed (from the `OpusHead`); otherwise `sample_rate` |
+| `frames` | int | Length in PCM frames at `sample_rate` (sample-exact for Ogg: pre-skip and end trim applied) |
+| `duration` | float | Seconds |
+
+Returns `false` with a warning when the data cannot be decoded.
+
+## vio_audio_decode
+
+```php
+array|false vio_audio_decode(string $source, array $options = [])
+```
+
+Decode to interleaved PCM without an audio device. Returns the `vio_audio_info()` fields plus `pcm`.
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `data` | bool | `false` | `$source` holds the encoded bytes instead of a path |
+| `format` | string | `'s16'` | `'s16'` (signed 16-bit little endian, `unpack('s*')`) or `'f32'` (32-bit float, `unpack('g*')`) |
+
+## vio_audio_encode
+
+```php
+string|false vio_audio_encode(string $pcm, int $sampleRate, int $channels, string $codec = 'opus', array $options = [])
+```
+
+Encode interleaved signed 16-bit little-endian PCM (`pack('s*', ...)`, 1 or 2 channels) to an Ogg Opus (`.opus`) or Ogg Vorbis (`.ogg`) file. The bytes are deterministic: the same input and options give the same file (the Ogg serial number is derived from the PCM unless `serial` is set), so build caches and reproducible builds work.
+
+**Opus** (`$sampleRate` must be 8000, 12000, 16000, 24000 or 48000 – resample other rates first):
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `bitrate` | int | 48000 mono / 96000 stereo | Bits per second (500–512000) |
+| `application` | string | `'audio'` | `'audio'`, `'voip'` (speech) or `'lowdelay'` |
+| `signal` | string | `'auto'` | `'auto'`, `'voice'` or `'music'` |
+| `complexity` | int | `10` | 0–10 |
+| `vbr` | bool | `true` | Variable bitrate |
+| `frame_ms` | int | `20` | 10, 20, 40 or 60 |
+| `serial` | int | from the PCM | Ogg stream serial |
+
+The `OpusHead` records `$sampleRate` as the input rate; playback is always 48 kHz. The encoder delay is written as pre-skip and the last page trims the padding, so decoding gives back exactly the input length.
+
+**Vorbis** (any rate):
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `quality` | float | `0.5` | −0.1 … 1.0 (0.5 ≙ `oggenc -q5`) |
+| `bitrate` | int | – | Managed average bitrate instead of quality mode |
+| `serial` | int | from the PCM | Ogg stream serial |
+
+Invalid arguments (channels, PCM length, codec, option names/types) throw `ValueError`/`TypeError`; encoder errors (unsupported rate, quality out of range) return `false` with a warning.
+
+```php
+// Speech: 32 kbps Opus at 24 kHz
+$opus = vio_audio_encode($pcm24k, 24000, 1, 'opus', ['bitrate' => 32000, 'application' => 'voip', 'signal' => 'voice']);
+file_put_contents('line.opus', $opus);
+
+// Music: Vorbis q5
+file_put_contents('theme.ogg', vio_audio_encode($pcm44k, 44100, 2, 'vorbis', ['quality' => 0.5]));
+```
 
 ## vio_audio_play
 
