@@ -89,9 +89,11 @@ vio_inject_mouse_move($ctx, 32.0, 32.0);
 vio_inject_mouse_button($ctx, VIO_MOUSE_LEFT, VIO_PRESS);
 ```
 
+Text, scroll, touch and gamepads can be injected too – [`vio_inject_char()`](/api/keyboard#vio-inject-char), [`vio_inject_scroll()`](/api/mouse#vio-inject-scroll), [`vio_touch_inject()`](/api/touch#vio-touch-inject) and [virtual gamepads](/api/gamepad#virtual-gamepads). Whole sessions can be recorded and replayed tick by tick with [input recording](/api/input-recording).
+
 ## Running the Test Suite
 
-php-vio includes 45 PHPT tests:
+php-vio includes 250 PHPT tests (v2.34.1):
 
 ```bash
 NO_INTERACTION=1 TEST_PHP_EXECUTABLE=$(which php) \
