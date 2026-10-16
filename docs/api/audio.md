@@ -12,6 +12,44 @@ Load an audio file. Supported formats: WAV, MP3, FLAC, Ogg Vorbis, Ogg Opus.
 
 The miniaudio engine is lazily initialized on the first call. Ogg files and paths through a PHP stream wrapper (`phar://`, `data://`, …) are read into memory and decoded from there, so audio packed into a PHAR plays directly.
 
+## vio_audio_init
+
+```php
+bool vio_audio_init(array $options = [])
+```
+
+Start the audio engine explicitly – before the first sound; otherwise `vio_audio_load()` starts it with the default backends.
+
+| Option | Type | Description |
+|---|---|---|
+| `backends` | list&lt;string&gt; | miniaudio backends to try in order: `wasapi`, `dsound`, `winmm`, `coreaudio`, `sndio`, `audio4`, `oss`, `pulseaudio`, `alsa`, `jack`, `aaudio`, `opensl`, `webaudio`, `null` |
+
+`null` is a device without hardware: it pulls audio on its own real-time clock, so loading, decoding, resampling and mixing run exactly as with a sound card – for headless servers and CI runners without one.
+
+Without `backends`, the environment variable `VIO_AUDIO_BACKEND` (comma list, e.g. `null` or `pulseaudio,alsa,null`) decides; without it, miniaudio's default order. Returns `false` with a warning when the engine cannot start, or when it already runs and `backends` was given. An unknown backend name throws `ValueError`.
+
+```php
+// CI / headless: play through the null device
+vio_audio_init(['backends' => ['null']]);
+// or: VIO_AUDIO_BACKEND=null php game.php
+```
+
+## vio_audio_backend
+
+```php
+string|false vio_audio_backend()
+```
+
+The backend the engine plays through (`wasapi`, `coreaudio`, `pulseaudio`, `alsa`, `null`, …), `false` before the engine is started.
+
+## vio_audio_backends
+
+```php
+array vio_audio_backends()
+```
+
+The backends compiled into this build, in default priority order (`null` last).
+
 ## vio_audio_load_data
 
 ```php
