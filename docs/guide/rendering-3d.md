@@ -37,7 +37,7 @@ The `layout` array defines the vertex attribute format. Each entry maps to a `lo
 ]
 ```
 
-Available formats: `VIO_FLOAT1` through `VIO_FLOAT4`, `VIO_INT1` through `VIO_INT4`, `VIO_UINT1` through `VIO_UINT4`.
+Available formats: `VIO_FLOAT1` through `VIO_FLOAT4` and `VIO_INT1` through `VIO_INT4`.
 
 ### Indexed Meshes
 

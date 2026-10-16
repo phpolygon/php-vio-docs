@@ -50,23 +50,22 @@ vio_update_buffer($buf, $color, 64);  // Write at byte 64
 
 ## vio_bind_buffer
 
-::: warning
-Binding a uniform buffer to a **graphics** shader block currently works on D3D11 only (OpenGL flattens blocks to plain uniforms, D3D12 — and Metal, which stages the same way — replace the constant buffer with the shader's staged uniforms at draw time). Portable code sets block members with [`vio_set_uniform()`](/guide/shaders#setting-uniforms).
-:::
 
 ```php
 void vio_bind_buffer(VioContext $context, VioBuffer $buffer, int $binding = -1)
 ```
 
-Bind a buffer to its binding point. If `$binding` is `-1`, uses the binding specified at creation.
+Bind a buffer to a binding point (0–15). If `$binding` is `-1`, the binding given at creation is used.
+
+A uniform buffer feeds the named uniform block declared at that binding (`layout(std140, binding = N) uniform Block { ... }`) in every stage of the bound graphics shader, on every backend. Each draw reads the contents as of that draw, so `vio_update_buffer()` between two draws gives them different values.
 
 ## Vertex-stage storage buffers (readback-free instancing)
 
 A compute-written storage buffer can be bound directly to the **graphics**
 pipeline so a vertex shader reads per-instance data via `gl_InstanceIndex` — no
 GPU→CPU readback. Gate on `vio_supports_feature($ctx, VIO_FEATURE_VERTEX_STORAGE)`
-(true on OpenGL ≥ 4.3, D3D11, D3D12; false on backends without a vertex storage
-path, where callers fall back to `vio_storage_buffer_read()` + `vio_draw_instanced()`).
+(OpenGL ≥ 4.3, D3D11, D3D12, Vulkan and Metal; where it is false, callers fall back to
+`vio_storage_buffer_read()` + `vio_draw_instanced()`).
 
 ### vio_bind_storage_buffer
 
@@ -102,6 +101,37 @@ vio_draw_instanced_from_buffer($ctx, $mesh, $n);
 // Vertex shader:
 //   layout(std430, binding = 0) readonly buffer Instances { mat4 models[]; };
 //   void main() { gl_Position = u_vp * models[gl_InstanceIndex] * vec4(aPos, 1.0); }
+```
+
+## vio_bind_fragment_storage_buffer
+
+```php
+bool vio_bind_fragment_storage_buffer(VioContext $context, ?VioBuffer $buffer, int $binding)
+```
+
+A writable storage buffer for the **fragment** stage: `$buffer` (from `vio_storage_buffer()`) at the
+fragment shader's `layout(std430, binding = $binding) buffer` block (0–3; writes and atomics), for
+every following draw until changed; `null` unbinds. `vio_storage_buffer_read()` waits for the draws
+that wrote it (mid-frame: the frame so far). The context keeps a reference. On D3D the block is a
+`RWByteAddressBuffer` at `u($binding + 4)`.
+
+Returns `false` with a warning without `VIO_FEATURE_FRAGMENT_STORAGE` (OpenGL ≥ 4.3, D3D11, D3D12,
+Vulkan with `fragmentStoresAndAtomics`, Metal).
+
+```php
+$fs = "#version 450\nlayout(location = 0) out vec4 o;\n"
+    . "layout(std430, binding = 0) buffer Counter { uint covered; };\n"
+    . "void main() { atomicAdd(covered, 1u); o = vec4(1.0); }";
+$counter = vio_storage_buffer($ctx, ['size' => 4]);
+
+vio_begin($ctx);
+vio_bind_pipeline($ctx, $pipe);
+vio_bind_fragment_storage_buffer($ctx, $counter, 0);
+vio_draw($ctx, $mesh);
+vio_bind_fragment_storage_buffer($ctx, null, 0);
+vio_end($ctx);
+
+$pixels = unpack('V', vio_storage_buffer_read($ctx, $counter))[1];   // fragments shaded
 ```
 
 ## Buffer Type Constants

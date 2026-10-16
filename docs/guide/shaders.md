@@ -11,7 +11,6 @@ php-vio provides a complete shader pipeline: write GLSL, compile to SPIR-V, cros
 | `VIO_SHADER_SPIRV` | Raw SPIR-V binary |
 | `VIO_SHADER_MSL` | Metal Shading Language (Metal only) |
 | `VIO_SHADER_GLSL_RAW` | GLSL passed directly (OpenGL only) |
-| `VIO_SHADER_HLSL` | HLSL passed directly (D3D only) |
 
 ## Writing GLSL Shaders
 

@@ -51,10 +51,32 @@ Create a mesh from vertex data.
 | `VIO_INT2` | 2 ints | 8 bytes |
 | `VIO_INT3` | 3 ints | 12 bytes |
 | `VIO_INT4` | 4 ints | 16 bytes |
-| `VIO_UINT1` | 1 uint | 4 bytes |
-| `VIO_UINT2` | 2 uints | 8 bytes |
-| `VIO_UINT3` | 3 uints | 12 bytes |
-| `VIO_UINT4` | 4 uints | 16 bytes |
+
+`VIO_UINT1` – `VIO_UINT4` are not registered as PHP constants (v2.34.1).
+
+### Indices
+
+`indices` are stored as uint16 when every index is < 65536 (half the index bandwidth), otherwise as
+uint32 – on every backend. `'index_type' => VIO_INDEX_UINT32` forces 32-bit indices.
+`'adjacency' => true` builds `VIO_TRIANGLES_ADJACENCY` indices for geometry shaders.
+
+## vio_mesh_index_bytes
+
+```php
+int vio_mesh_index_bytes(VioMesh $mesh)
+```
+
+Bytes per index of the mesh's index buffer: `2` (uint16), `4` (uint32), `0` when the mesh is not
+indexed.
+
+```php
+$small = vio_mesh($ctx, ['vertices' => $v, 'indices' => [0, 1, 2], 'layout' => [VIO_FLOAT3]]);
+vio_mesh_index_bytes($small);   // 2
+
+$wide = vio_mesh($ctx, ['vertices' => $v, 'indices' => [0, 1, 2], 'layout' => [VIO_FLOAT3],
+                        'index_type' => VIO_INDEX_UINT32]);
+vio_mesh_index_bytes($wide);    // 4
+```
 
 ### Topology Constants
 
@@ -66,6 +88,12 @@ Create a mesh from vertex data.
 | `VIO_LINES` | Every 2 vertices form a line |
 | `VIO_LINE_STRIP` | Connected line segments |
 | `VIO_POINTS` | Individual points |
+| `VIO_PATCHES` | Tessellation patches (pipelines with tessellation stages) |
+| `VIO_LINES_ADJACENCY`, `VIO_LINE_STRIP_ADJACENCY`, `VIO_TRIANGLES_ADJACENCY`, `VIO_TRIANGLE_STRIP_ADJACENCY` | Primitives with adjacency for geometry shaders |
+
+For draws whose arguments come from a GPU buffer, batched submission and recorded bundles see
+[Batches, Bundles & Indirect Draws](/api/draw-submission); for mesh / task shaders see
+[Mesh Shaders](/api/mesh-shaders).
 
 ## vio_draw
 
