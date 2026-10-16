@@ -33,6 +33,8 @@ Create an offscreen render target. New targets start defined: colour cleared to 
 | `mipmaps` | bool | `false` | Allocate a full mip chain so [`vio_generate_mipmaps()`](#vio-generate-mipmaps) / `textureLod` work |
 | `attachments` | int[] | `[VIO_FORMAT_RGBA8]` | Multiple render targets: one `VIO_FORMAT_*` per colour attachment (up to `VIO_MAX_COLOR_ATTACHMENTS` = 8; on Vulkan more than 4 needs a device with that `maxColorAttachments`). Overrides `hdr` |
 | `storage` | bool | `false` | The colour attachments double as compute storage images ([below](#render-targets-as-storage-images)). Single-sample 2D colour targets; needs `VIO_FEATURE_RENDER_TARGET_STORAGE` (D3D12, Vulkan) |
+| `layers` | int | – | 2–64: 2D array target (colour or `depth_only`, every layer with its own depth; single attachment, single-sampled, no mips). Bind one layer with `vio_bind_render_target($ctx, $rt, $layer)`, sample the array as `sampler2DArray`. Needs `VIO_FEATURE_RENDER_TARGET_LAYERED` |
+| `rate_map` | array | – | `['x' => [q, …], 'y' => [q, …]]`: sampling quality 0 < q ≤ 1 of 1–16 equal zones per axis. With `VIO_FEATURE_RASTER_RATE_MAP` (Metal) low-quality zones render with fewer samples into a smaller physical target that is resolved into the texture when the pass leaves the target; elsewhere full rate. Plain 2D colour targets only (`ValueError` otherwise) |
 
 ```php
 $scene  = vio_render_target($ctx, ["width" => 1280, "height" => 720]);
@@ -48,6 +50,25 @@ Formats: `VIO_FORMAT_RGBA8`, `RGBA16F`, `RGBA32F`, `R11G11B10F`, `RG16F`, `R16F`
 (see [Constants → Pixel Formats](/api/constants#pixel-formats)). With MRT the fragment shader
 writes `layout(location = i) out vec4` per attachment; on D3D12 pass the same `attachments`
 list to [`vio_pipeline()`](/api/shaders#vio-pipeline) so the PSO knows the formats.
+
+## vio_render_target_size
+
+```php
+array vio_render_target_size(VioRenderTarget $target)
+```
+
+`['width' => int, 'height' => int, 'physical_width' => int, 'physical_height' => int, 'rate_map' => bool]`:
+the logical size and the size the GPU renders at. The physical size is smaller only with an active
+`rate_map` (Metal, `VIO_FEATURE_RASTER_RATE_MAP`); everywhere else it equals the logical size and
+`rate_map` is `false`.
+
+```php
+$rt = vio_render_target($ctx, ['width' => 1920, 'height' => 1080,
+                               'rate_map' => ['x' => [0.5, 1.0, 0.5], 'y' => [0.5, 1.0, 0.5]]]);
+$s = vio_render_target_size($rt);
+// Metal: physical_width / physical_height below 1920 × 1080, 'rate_map' => true
+// other backends: physical size = 1920 × 1080, 'rate_map' => false
+```
 
 ## vio_create_render_target
 

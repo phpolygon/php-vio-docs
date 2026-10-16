@@ -2,7 +2,7 @@ import { defineConfig } from 'vitepress'
 
 export default defineConfig({
   title: 'php-vio',
-  description: 'GPU Rendering, Audio, Video & Input for PHP (php-vio v2.10)',
+  description: 'GPU Rendering, Audio, Video & Input for PHP (php-vio v2.34.1)',
   lang: 'en-US',
   base: '/php-vio-docs/',
 
@@ -16,7 +16,7 @@ export default defineConfig({
     nav: [
       { text: 'Guide', link: '/guide/what-is-php-vio' },
       { text: 'API', link: '/api/context' },
-      { text: 'GitHub', link: 'https://github.com/phpgl/php-vio' },
+      { text: 'GitHub', link: 'https://github.com/phpolygon/php-vio' },
     ],
 
     sidebar: {
@@ -72,7 +72,9 @@ export default defineConfig({
           items: [
             { text: 'Context & Frame', link: '/api/context' },
             { text: 'Window', link: '/api/window' },
-            { text: 'Backend', link: '/api/backend' },
+            { text: 'Backend & Adapters', link: '/api/backend' },
+            { text: 'Platform & Clipboard', link: '/api/platform' },
+            { text: 'GPU Profiling', link: '/api/profiling' },
           ],
         },
         {
@@ -81,6 +83,8 @@ export default defineConfig({
             { text: 'Keyboard', link: '/api/keyboard' },
             { text: 'Mouse', link: '/api/mouse' },
             { text: 'Gamepad', link: '/api/gamepad' },
+            { text: 'Touch', link: '/api/touch' },
+            { text: 'Recording & Replay', link: '/api/input-recording' },
           ],
         },
         {
@@ -88,14 +92,25 @@ export default defineConfig({
           items: [
             { text: '2D Primitives', link: '/api/2d' },
             { text: 'Meshes', link: '/api/meshes' },
+            { text: 'Batches, Bundles & Indirect', link: '/api/draw-submission' },
             { text: 'Shaders & Pipelines', link: '/api/shaders' },
             { text: 'Textures', link: '/api/textures' },
             { text: 'Buffers & Uniforms', link: '/api/buffers' },
             { text: 'Compute', link: '/api/compute' },
             { text: 'Fonts & Text', link: '/api/fonts' },
             { text: 'Render Targets', link: '/api/render-targets' },
+            { text: 'Portable Upscaling', link: '/api/upscale' },
             { text: 'Native Upscalers', link: '/api/upscaling' },
             { text: 'Cubemaps', link: '/api/cubemaps' },
+          ],
+        },
+        {
+          text: 'Advanced GPU',
+          items: [
+            { text: 'Ray Tracing', link: '/api/ray-tracing' },
+            { text: 'Mesh Shaders & Work Graphs', link: '/api/mesh-shaders' },
+            { text: 'Variable Rate Shading', link: '/api/shading-rate' },
+            { text: 'Bindless & Sampler Feedback', link: '/api/bindless' },
           ],
         },
         {
@@ -118,7 +133,7 @@ export default defineConfig({
     },
 
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/phpgl/php-vio' },
+      { icon: 'github', link: 'https://github.com/phpolygon/php-vio' },
     ],
 
     search: {
@@ -131,7 +146,7 @@ export default defineConfig({
     },
 
     editLink: {
-      pattern: 'https://github.com/phpgl/php-vio-docs/edit/main/docs/:path',
+      pattern: 'https://github.com/phpolygon/php-vio-docs/edit/main/docs/:path',
       text: 'Edit this page on GitHub',
     },
   },

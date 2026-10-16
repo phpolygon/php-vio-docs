@@ -48,7 +48,11 @@ Returns `[scrollX, scrollY]` scroll delta since last frame. Positive Y = scroll 
 void vio_inject_mouse_move(VioContext $context, float $x, float $y)
 ```
 
-Simulate cursor movement to position `($x, $y)`.
+Simulate cursor movement to position `($x, $y)`. Coordinates are raw cursor coordinates as the OS
+reports them and go through the same conversion as a real pointer: headless that conversion is
+1:1, so `vio_mouse_position()` returns exactly what was injected; on a windowed context on a scaled
+desktop `vio_mouse_position()` divides by the scale (see `vio_content_scale()`).
+`vio_mouse_delta()` is measured against the position at the last `vio_begin()`.
 
 ## vio_inject_mouse_button
 
@@ -58,8 +62,42 @@ void vio_inject_mouse_button(VioContext $context, int $button, int $action)
 
 Simulate a mouse button press/release.
 
-- `$button` — `VIO_MOUSE_LEFT`, `VIO_MOUSE_RIGHT`, or `VIO_MOUSE_MIDDLE`
-- `$action` — `VIO_PRESS` or `VIO_RELEASE`
+- `$button` – `VIO_MOUSE_LEFT`, `VIO_MOUSE_RIGHT`, or `VIO_MOUSE_MIDDLE`
+- `$action` – `VIO_PRESS` or `VIO_RELEASE` (`VIO_REPEAT` counts as held; anything else throws a `ValueError`)
+
+## vio_inject_scroll
+
+```php
+void vio_inject_scroll(VioContext $context, float $dx, float $dy)
+```
+
+Inject a simulated scroll-wheel event. It accumulates into `vio_mouse_scroll()` the way wheel
+events do; `vio_begin()` resets the scroll to zero, so inject before the game reads scroll for the
+frame.
+
+```php
+vio_inject_scroll($ctx, 0.0, -1.0);    // one notch down
+[$sx, $sy] = vio_mouse_scroll($ctx);   // [0.0, -1.0] until the next vio_begin()
+```
+
+## vio_set_cursor_mode
+
+```php
+void vio_set_cursor_mode(VioContext $context, int $mode)
+```
+
+Set the cursor mode of the context's window.
+
+| Mode | Value | Effect |
+|---|---|---|
+| `VIO_CURSOR_NORMAL` | 0 | Visible, free cursor |
+| `VIO_CURSOR_DISABLED` | 1 | Hides the cursor, confines it and enables raw mouse motion – for first-person controls (read `vio_mouse_delta()`) |
+| `VIO_CURSOR_HIDDEN` | 2 | Hides the cursor |
+
+```php
+vio_set_cursor_mode($ctx, VIO_CURSOR_DISABLED);   // mouse look
+[$dx, $dy] = vio_mouse_delta($ctx);
+```
 
 ## vio_on_resize
 

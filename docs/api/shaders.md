@@ -17,6 +17,13 @@ Compile a shader program.
 | `vertex` | string | Yes | Vertex shader source |
 | `fragment` | string | Yes | Fragment shader source |
 | `format` | int | No | Shader format (default: `VIO_SHADER_AUTO`) |
+| `geometry` | string | No | Geometry stage (`VIO_FEATURE_GEOMETRY`) |
+| `tess_control`, `tess_eval` | string | No | Tessellation pair, always both (`VIO_FEATURE_TESSELLATION`); the pipeline then draws `VIO_PATCHES` |
+| `mesh`, `task` | string | No | Mesh pipeline: `mesh` replaces `vertex`, `task` is optional (`VIO_FEATURE_MESH_SHADER`, see [Mesh Shaders](/api/mesh-shaders)) |
+| `hlsl` | array | No | D3D11 / D3D12: `['geometry' \| 'tess_control' \| 'tess_eval' \| 'fragment' => HLSL]` compiled as-is instead of the transpiled GLSL stage (`VIO_FEATURE_HLSL_STAGE_OVERRIDE`); the GLSL stage stays required |
+| `view_count` | int | No | 2–4: multiview shader (`gl_ViewIndex`, `VIO_FEATURE_MULTIVIEW`), drawn into the layers of a target bound with `VIO_RT_ALL_LAYERS` |
+
+Backends that report a stage's feature as 0 return `false` with a warning.
 
 ### Shader Format Constants
 
@@ -27,7 +34,8 @@ Compile a shader program.
 | `VIO_SHADER_GLSL` | 2 | GLSL → compile to SPIR-V → cross-compile |
 | `VIO_SHADER_MSL` | 3 | Metal Shading Language (Metal backend only) |
 | `VIO_SHADER_GLSL_RAW` | 4 | GLSL passed directly (OpenGL only) |
-| `VIO_SHADER_HLSL` | 5 | HLSL passed directly (D3D only) |
+
+HLSL is not a `format`: the D3D backends take HLSL through the `hlsl` key above (`VIO_SHADER_HLSL` is not registered as a PHP constant).
 
 ## vio_pipeline
 
@@ -156,4 +164,21 @@ Set a uniform value by name. For simple uniforms outside of UBOs.
 vio_set_uniform($ctx, "uTime", 3.14);                      // float
 vio_set_uniform($ctx, "uColor", [1.0, 0.0, 0.0, 1.0]);    // vec4
 vio_set_uniform($ctx, "uEnabled", 1);                       // int
+```
+
+Supports int, float, vec2/3/4 (flat array), mat3 (9 floats) and mat4 (16 floats). Uniforms that are
+not in the shader are silently ignored.
+
+## vio_set_uniforms
+
+```php
+void vio_set_uniforms(VioContext $context, array $uniforms)
+```
+
+Batch form of `vio_set_uniform()`: apply a map of `['u_name' => value, ...]` in a single native
+call. Each value follows the rules of `vio_set_uniform()`; the resulting uniform state is identical,
+without the per-uniform PHP → C call overhead on the hot draw path.
+
+```php
+vio_set_uniforms($ctx, ['u_model' => $model, 'u_color' => [1.0, 1.0, 1.0, 1.0], 'u_time' => $t]);
 ```

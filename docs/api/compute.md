@@ -139,3 +139,30 @@ vio_draw_instanced_from_buffer($ctx, $mesh, $n);
 |---|---|
 | ![Compute storage image](/gallery/compute_storage_image.png) | ![Compute vertex storage](/gallery/compute_vertex_storage.png) |
 | Kernel writes an `image2D`, the render pass samples it | Kernel writes instance matrices, the vertex stage reads them |
+
+## vio_cooperative_matrix_shapes
+
+```php
+array vio_cooperative_matrix_shapes(VioContext $context)
+```
+
+The cooperative-matrix shapes (`VIO_FEATURE_COOPERATIVE_MATRIX`, GLSL `GL_KHR_cooperative_matrix`):
+the subgroup-scope tiles a compute kernel can multiply with `coopMatMulAdd`. Each entry is
+`['m' => int, 'n' => int, 'k' => int, 'a' => string, 'b' => string, 'c' => string, 'result' => string]`
+– A is M × K, B is K × N, C and the result M × N; types are `'float16'`, `'float32'`, `'sint8'`,
+`'uint8'`, `'sint32'`, `'bfloat16'`, …
+
+| Backend | Shapes |
+|---|---|
+| Vulkan | The device's `VK_KHR_cooperative_matrix` properties (subgroup scope, float16 / float32) |
+| Metal | 8 × 8 × 8 `simdgroup_matrix` shapes (MSL ≥ 3.1, Apple7+) |
+| OpenGL, D3D11, D3D12 | `[]` – the feature is 0 |
+
+```php
+foreach (vio_cooperative_matrix_shapes($ctx) as $s) {
+    if ($s['a'] === 'float16' && $s['result'] === 'float32') {
+        $tile = [$s['m'], $s['n'], $s['k']];   // pick the kernel variant for this tile
+        break;
+    }
+}
+```

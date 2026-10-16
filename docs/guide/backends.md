@@ -25,7 +25,9 @@ Auto-selection is platform-specific:
 | **Windows** | D3D12 > D3D11 > Vulkan > OpenGL |
 | **Linux** | Vulkan > OpenGL |
 
-Since v2.10 `"auto"` skips a backend that reports `VIO_FEATURE_3D_PIPELINE = 0` when a later candidate has one — Vulkan currently has no 3D pipeline, so Linux resolves to **OpenGL** and Windows without D3D falls through to OpenGL as well. `"null"` is never auto-selected. Override globally with the `vio.default_backend` INI setting.
+`"auto"` skips a backend that reports `VIO_FEATURE_3D_PIPELINE = 0` when a later candidate has one, ; on Linux machines without a Vulkan driver it resolves to **OpenGL**. `"null"` is never auto-selected. Override globally with the `vio.default_backend` INI setting.
+
+With `vio_create("auto", ["prefer" => "performance" | "quality" | "compat", "require" => [VIO_FEATURE_*, …]])` the fixed priority list is replaced by a ranking of each backend's preferred adapter (vendor profile, discrete before integrated, software rasterizers last, required features) – see [`vio_rank_backends()`](/api/backend#vio-rank-backends). `"benchmark" => true` measures the top candidates once and caches the result ([`vio_benchmark_backends()`](/api/backend#vio-benchmark-backends)). [`vio_backend_info()`](/api/backend#vio-backend-info)`["selected_by"]` tells how a context was chosen.
 
 On macOS, Vulkan (via MoltenVK) is supported but opt-in — you must request it explicitly.
 
@@ -52,14 +54,12 @@ Modern, low-overhead GPU API with explicit resource management.
 
 | Property | Value |
 |---|---|
-| API | Vulkan 1.0+ |
+| API | Vulkan 1.3 (or 1.2 + dynamic rendering + synchronization2) |
 | Memory | Vulkan Memory Allocator (VMA) |
 | Platforms | Linux, Windows, macOS (MoltenVK) |
 | Headless | ✅ |
 
-::: warning Vulkan is 2D + compute only
-The Vulkan backend has the native 2D batch, basic render targets, compute and `vio_read_pixels()`, but **no 3D pipeline** (`vio_mesh`/`vio_shader`/`vio_pipeline`/`vio_draw` return `false`), no cubemaps and no HDR / depth-only / MSAA targets. Since v2.10 its feature flags say so, and `"auto"` prefers OpenGL over it. `vsync => false` selects the IMMEDIATE present mode (MAILBOX → FIFO fallback).
-:::
+Vulkan 1.3 – or 1.2 with `VK_KHR_dynamic_rendering` and `VK_KHR_synchronization2` – is required; a device without them is not chosen. The 3D pipeline compiles GLSL → SPIR-V → Vulkan GLSL (SPIRV-Cross) → SPIR-V and follows the D3D conventions (render-target row 0 = top, depth 0..1). `vsync => false` selects the IMMEDIATE present mode (MAILBOX → FIFO fallback).
 
 ### macOS Setup (MoltenVK)
 
@@ -161,7 +161,7 @@ Modern, low-level DirectX backend with explicit resource management.
 | Property | Value |
 |---|---|
 | API | Direct3D 12 |
-| Shader Model | 5.1 |
+| Shader Model | 5.1 (FXC); 6.x with DXC via `vio_create(['shader_model' => 6])` |
 | Platforms | Windows 10+ only |
 | Headless | ✅ via WARP software renderer |
 
@@ -180,7 +180,7 @@ D3D12 is the highest-priority backend on Windows. It uses explicit command lists
 
 ### Shader Pipeline
 
-Same multi-stage pipeline as D3D11, but targets Shader Model 5.1:
+Same multi-stage pipeline as D3D11, but targets Shader Model 5.1 – or, with `vio_create(['shader_model' => 6])` and `dxcompiler.dll` / `dxil.dll`, the highest Shader Model 6.x the device and DXC accept (DXIL). Ray tracing, mesh shaders, work graphs and several shader features need Shader Model 6; work graphs usually also need the D3D12 Agility SDK (`'agility_sdk' => $dir`). [`vio_swapchain_info()`](/api/backend#vio-swapchain-info) reports the shader model and the Agility SDK in use.
 
 ```
 GLSL → SPIR-V (glslang) → HLSL (SPIRV-Cross) → DXBC (D3DCompile)
@@ -226,31 +226,49 @@ $active = vio_backend_name($ctx);  // e.g. "opengl"
 ## Backend Feature Matrix
 
 Source of truth: each backend's `supports_feature()`; `tests/core/074_backend_capability_matrix.phpt`
-pins it. Query at runtime with [`vio_supports_feature()`](/api/backend#vio-supports-feature).
+pins it. Query at runtime with [`vio_supports_feature()`](/api/backend#vio-supports-feature) and
+[`vio_feature_info()`](/api/backend#vio-feature-info) (native or emulated). Many flags also depend
+on the device and driver – the table shows what a backend can provide, not what every GPU has.
 
-| Feature | OpenGL | D3D11 | D3D12 | Metal | Vulkan | Null |
-|---|---|---|---|---|---|---|
-| 3D pipeline (`vio_mesh` / `vio_shader` / `vio_pipeline` / `vio_draw`) | ✅ | ✅ | ✅ | ✅ | ❌ | — |
-| Instanced drawing | ✅ | ✅ | ✅ | ✅ | ❌ | — |
-| Native 2D batch | ✅ | ✅ | ✅ | ✅ | ✅ | — |
-| Render targets (basic) | ✅ | ✅ | ✅ | ✅ | ✅ | — |
-| Render targets HDR / depth-only | ✅ | ✅ | ✅ | ✅ | ❌ | — |
-| Render targets MSAA (`samples`) | ✅ | ✅ | ❌ | ✅ | ❌ | — |
-| Cube render targets + `vio_generate_mipmaps` | ✅ | ✅ | ✅ | ✅ | ❌ | — |
-| Multiple render targets (`attachments`) | ✅ | ✅ | ✅ | ✅ | ❌ | — |
-| `vio_read_render_target` | ✅ | ✅ | ✅ | ✅ | ❌ | — |
-| Cubemaps | ✅ | ✅ | ✅ | ✅ | ❌ | — |
-| Compute | ✅ (GL ≥ 4.3) | ✅ | ✅ | ✅ | ✅ | — |
-| Storage images | ✅ (GL ≥ 4.3) | ✅ | ✅ | ✅ | ❌ | — |
-| Vertex-stage storage buffers | ✅ (GL ≥ 4.3) | ✅ | ✅ | ✅ | ❌ | — |
-| Async compute inside the frame | ✅ | ✅ | ✅ | ✅ | sync | — |
-| 3D textures | ✅ | ✅ | ✅ | ✅ | ✅ | — |
-| `vio_texture_update` | ✅ | ✅ | ✅ | ✅ | ❌ | — |
-| Anisotropic filtering | ✅ | ✅ | ✅ | ignored | ✅ | — |
-| Texture swizzle | ✅ (3.3+) | ❌ (CPU expand) | ✅ | ✅ | ✅ | — |
-| Tessellation / geometry shaders | GL version | ❌ | ❌ | ❌ | ❌ | — |
-| `vio_read_pixels()` / screenshots | ✅ | ✅ | ✅ | ✅ | ✅ | — |
-| Recording / streaming capture | ✅ | ✅ | ✅ | ✅ | ✅ | — |
+| Feature | OpenGL | D3D11 | D3D12 | Vulkan | Metal |
+|---|---|---|---|---|---|
+| 3D pipeline, instancing, native 2D batch | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Render targets: HDR / depth-only / MSAA / cube / MRT (up to 8) | ✅ | ✅ | ✅ | ✅ | ✅ (MRT untested) |
+| Layered targets, `VIO_RT_ALL_LAYERS`, [multiple viewports](/api/window#vio-viewports) | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Depth of a colour target, raw readback | ✅ | ✅ | ✅ | ✅ | ✅ (untested) |
+| Render targets as storage images | ❌ | ❌ | ✅ | ✅ | ❌ |
+| Compute, storage images, async compute | ✅ (GL ≥ 4.3) | ✅ | ✅ | ✅ | ✅ |
+| Vertex- and [fragment-stage storage](/api/buffers#vio-bind-fragment-storage-buffer) | ✅ (GL ≥ 4.3) | ✅ | ✅ | ✅ | ✅ |
+| Geometry shaders | ✅ (GL ≥ 3.2) | ✅ | ✅ | ✅ | ✅ emulated (compute) |
+| Tessellation | ✅ (GL ≥ 4.0) | ✅ | ✅ | ✅ | ✅ (compute-based) |
+| Multiview | ✅ | ✅ emulated (instancing) | ✅ | ✅ | ✅ emulated (instancing) |
+| Stencil, texture arrays, BC compression, [KTX2](/api/textures#vio-texture-ktx2) | ✅ | ✅ | ✅ | ✅ | ✅ |
+| ASTC textures | with `KHR_texture_compression_astc_ldr` | ❌ | ❌ | with `textureCompressionASTC_LDR` | ✅ (Apple GPUs) |
+| [Indirect draws](/api/draw-submission#vio-draw-indirect) | ✅ (GL ≥ 4.0) | ✅ | ✅ | ✅ | ✅ |
+| [Bundles](/api/draw-submission#vio-bundle) | replay | ✅ native | ✅ native | ✅ native | replay |
+| [GPU timestamps](/api/profiling) | ✅ (GL ≥ 3.3) | ✅ | ✅ | ✅ | ✅ |
+| On-disk shader cache | ✅ (GL ≥ 4.1) | ✅ | ✅ | ✅ | ✅ |
+| Frame latency (waitable swapchain) | ❌ | ✅ | ✅ | ❌ | ✅ |
+| HDR10 output | ❌ | ✅ | ✅ | ✅ | ✅ (EDR displays) |
+| Subgroups / quad ops | ✅ | ❌ | ✅ (SM 6) | ✅ | ✅ |
+| Barycentrics, float16 | ✅ | ❌ | ✅ | ✅ | ✅ |
+| 64-bit atomics | ❌ | ❌ | ✅ (SM 6.6) | ✅ | ❌ |
+| [Variable rate shading](/api/shading-rate) (rate / per primitive / image) | ❌ | ❌ | ✅ | ✅ | ❌ (rate maps instead) |
+| [Bindless textures](/api/bindless) | ❌ | ❌ | ✅ | ✅ | ✅ |
+| [Mesh / task shaders](/api/mesh-shaders) | ❌ | ❌ | ✅ (SM 6.5) | ✅ | ✅ (Metal 3) |
+| [Ray queries](/api/ray-tracing) | ❌ | ❌ | ✅ (DXR 1.1) | ✅ | ✅ |
+| [Ray tracing pipelines](/api/ray-tracing#vio-rt-pipeline) | ❌ | ❌ | ✅ (DXR 1.0) | ✅ | ❌ |
+| Shader execution reordering, opacity micromaps | ❌ | ❌ | ✅ (DXR 1.2) | ✅ | ❌ |
+| [Sampler feedback](/api/bindless#sampler-feedback) (GLSL path / hardware) | ✅ / ❌ | ✅ / ❌ | ✅ / ✅ | ✅ / ❌ | ✅ / ❌ |
+| [Cooperative matrices](/api/compute#vio-cooperative-matrix-shapes) | ❌ | ❌ | ❌ | ✅ | ✅ |
+| [Work graphs](/api/mesh-shaders#work-graphs) | ❌ | ❌ | ✅ (SM 6.8) | ❌ | ❌ |
+| Long vectors | ❌ | ❌ | ✅ (SM 6.9, HLSL kernels) | ✅ | ❌ |
+| Rasterization rate maps | – | – | – | – | ✅ |
+| [Portable upscaling](/api/upscale) | ✅ | ✅ | ✅ | ✅ | ✅ (+ MetalFX spatial) |
+| [Native upscalers](/api/upscaling) (FSR 3.1, DLSS) | ❌ | ❌ | ✅ | ✅ | ❌ |
+| `vio_read_pixels()`, recording / streaming capture | ✅ | ✅ | ✅ | ✅ | ✅ |
 
-Row order of render targets differs (OpenGL row 0 = bottom, D3D/Metal row 0 = top) — see
+The `null` backend reports no GPU features.
+
+Row order of render targets differs (OpenGL row 0 = bottom, D3D/Metal/Vulkan row 0 = top) – see
 [Render Targets → Orientation](/api/render-targets#orientation).

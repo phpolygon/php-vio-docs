@@ -33,6 +33,9 @@ Create a texture from a file or raw pixel data.
 | `mipmaps` | bool | `false` | Upload a full mip chain (trilinear sampling) |
 | `anisotropy` | int | `1` | Anisotropic filtering level 1–16 (v2.10; OpenGL, D3D11, D3D12, Vulkan — Metal ignores it) |
 | `storage` | bool | `false` | Storage image for compute (`image2D`, see [Compute](/api/compute)); `data` is optional (zero-initialised) |
+| `format` | int | `VIO_FORMAT_RGBA8` | Or `VIO_FORMAT_BC1` / `BC3` / `BC4` / `BC5` / `BC7` for block-compressed `data` (`VIO_FEATURE_TEXTURE_COMPRESSION_BC`), `VIO_FORMAT_ASTC_*` (`VIO_FEATURE_TEXTURE_COMPRESSION_ASTC`) |
+| `layers` | int | `1` | > 1: 2D texture array for `sampler2DArray` (`VIO_FEATURE_TEXTURE_ARRAY`) |
+| `mip_levels` | int | – | Levels already contained in `data`: level-major, the layers consecutive inside a level, images tightly packed (the KTX2 layout) |
 
 ### Filter Constants
 
@@ -86,6 +89,40 @@ $volume = vio_texture_3d($ctx, [
 ]);
 
 vio_bind_texture($ctx, $volume, 3);  // sample with a sampler3D bound to slot 3
+```
+
+## vio_texture_ktx2
+
+```php
+VioTexture|VioCubemap|false vio_texture_ktx2(VioContext $context, string $bytes, ?array $options = null)
+```
+
+Create a texture from a KTX2 container held in memory. The stored mip chain is uploaded as-is.
+
+- **2D and 2D-array** files in R8, RGBA8, BC1 / BC3 / BC4 / BC5 / BC7 return a `VioTexture`.
+  sRGB variants load as UNORM; supercompressed files are not supported.
+- A **cubemap** file (faceCount 6) returns a `VioCubemap`, a **3D** file (pixelDepth > 1) a 3D
+  `VioTexture` – both uncompressed (RGBA8; R8 expands to grey), the base level is `mip_offset`; a
+  cube with more levels gets its chain rebuilt.
+
+| Option | Default | Description |
+|---|---|---|
+| `mip_offset` | `0` | Drop the N largest levels – texture-quality tiers |
+| `filter` | `VIO_FILTER_LINEAR` | Texture filtering |
+| `wrap` | `VIO_WRAP_REPEAT` | Texture wrapping |
+| `anisotropy` | – | 1–16 |
+| `mipmaps` | `false` | Generate a chain for a single-level uncompressed file |
+
+Returns `false` with a warning for unsupported containers or formats. Block-compressed files need
+`VIO_FEATURE_TEXTURE_COMPRESSION_BC`, arrays `VIO_FEATURE_TEXTURE_ARRAY`; both are reported by
+OpenGL, D3D11, D3D12, Vulkan and Metal.
+
+```php
+$albedo = vio_texture_ktx2($ctx, file_get_contents('rock_bc7.ktx2'), [
+    'mip_offset' => $lowQuality ? 1 : 0,
+    'anisotropy' => 8,
+]);
+vio_bind_texture($ctx, $albedo, 0);
 ```
 
 ::: tip Sampler budget

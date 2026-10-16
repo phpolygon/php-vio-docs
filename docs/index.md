@@ -4,7 +4,7 @@ layout: home
 hero:
   name: php-vio
   text: GPU Rendering for PHP
-  tagline: OpenGL, Vulkan, Metal, Direct3D 11/12, Audio, Video Recording & Input — as a native PHP extension. Docs for v2.10.0.
+  tagline: OpenGL, Vulkan, Metal, Direct3D 11/12, Audio, Video Recording & Input – as a native PHP extension. Docs for v2.34.1.
   image:
     src: /gallery/cubemap_environment.png
     alt: Cube render target with roughness mip chain, rendered headless by php-vio
@@ -20,7 +20,7 @@ hero:
       link: /guide/gallery
     - theme: alt
       text: View on GitHub
-      link: https://github.com/phpgl/php-vio
+      link: https://github.com/phpolygon/php-vio
 
 features:
   - title: Multi-Backend GPU
