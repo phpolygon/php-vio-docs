@@ -14,10 +14,20 @@ Complete reference of all `VIO_*` constants.
 | `VIO_INT2` | 2 | int |
 | `VIO_INT3` | 3 | int |
 | `VIO_INT4` | 4 | int |
-| `VIO_UINT1` | 1 | uint |
-| `VIO_UINT2` | 2 | uint |
-| `VIO_UINT3` | 3 | uint |
-| `VIO_UINT4` | 4 | uint |
+
+::: info
+The C headers also define `VIO_UINT1` – `VIO_UINT4`, but the extension does not register them as
+PHP constants (v2.34.1). Use the integer formats or the dict layout with `'components'`.
+:::
+
+## Index Types
+
+[`vio_mesh(['index_type' => …])`](/api/meshes#vio-mesh); [`vio_mesh_index_bytes()`](/api/meshes#vio-mesh-index-bytes) reports the width in use.
+
+| Constant | Value | Description |
+|---|---|---|
+| `VIO_INDEX_UINT16` | 2 | 16-bit indices (chosen automatically when every index is < 65536) |
+| `VIO_INDEX_UINT32` | 4 | Force 32-bit indices |
 
 ## Topology
 
@@ -29,6 +39,15 @@ Complete reference of all `VIO_*` constants.
 | `VIO_LINES` | 3 |
 | `VIO_LINE_STRIP` | 4 |
 | `VIO_POINTS` | 5 |
+| `VIO_PATCHES` | 6 |
+| `VIO_LINES_ADJACENCY` | 7 |
+| `VIO_LINE_STRIP_ADJACENCY` | 8 |
+| `VIO_TRIANGLES_ADJACENCY` | 9 |
+| `VIO_TRIANGLE_STRIP_ADJACENCY` | 10 |
+
+`VIO_PATCHES` is drawn by pipelines with tessellation stages (`'patch_vertices'` control points,
+`VIO_FEATURE_TESSELLATION`). The adjacency topologies feed geometry shaders;
+`vio_mesh(['adjacency' => true])` builds `VIO_TRIANGLES_ADJACENCY` indices.
 
 ## Culling
 
@@ -45,6 +64,24 @@ Complete reference of all `VIO_*` constants.
 | `VIO_BLEND_NONE` | 0 |
 | `VIO_BLEND_ALPHA` | 1 |
 | `VIO_BLEND_ADDITIVE` | 2 |
+| `VIO_BLEND_PREMULTIPLIED` | 3 |
+| `VIO_BLEND_MULTIPLY` | 4 |
+| `VIO_BLEND_SCREEN` | 5 |
+| `VIO_BLEND_MIN` | 6 |
+| `VIO_BLEND_MAX` | 7 |
+
+## Colour Mask
+
+`vio_pipeline(['color_mask' => …, 'attachment_color_mask' => […]])`.
+
+| Constant | Value |
+|---|---|
+| `VIO_COLOR_R` | 1 |
+| `VIO_COLOR_G` | 2 |
+| `VIO_COLOR_B` | 4 |
+| `VIO_COLOR_A` | 8 |
+| `VIO_COLOR_RGB` | 7 |
+| `VIO_COLOR_RGBA` | 15 |
 
 ## Depth Testing
 
@@ -52,6 +89,32 @@ Complete reference of all `VIO_*` constants.
 |---|---|
 | `VIO_DEPTH_LESS` | 0 |
 | `VIO_DEPTH_LEQUAL` | 1 |
+
+## Depth Reduction
+
+`'depth_reduction'` of depth-only render targets: how MSAA depth is resolved and how a depth mip
+chain is reduced (`VIO_FEATURE_DEPTH_MIPMAPS`).
+
+| Constant | Value |
+|---|---|
+| `VIO_DEPTH_REDUCE_MAX` | 0 |
+| `VIO_DEPTH_REDUCE_MIN` | 1 |
+
+## Stencil
+
+`vio_pipeline(['stencil' => ['func' => VIO_CMP_*, 'pass' => VIO_STENCIL_*, 'fail' => …, 'depth_fail' => …]])`,
+gated by `VIO_FEATURE_STENCIL`.
+
+| Compare function | Value | Stencil operation | Value |
+|---|---|---|---|
+| `VIO_CMP_NEVER` | 0 | `VIO_STENCIL_KEEP` | 0 |
+| `VIO_CMP_LESS` | 1 | `VIO_STENCIL_ZERO` | 1 |
+| `VIO_CMP_EQUAL` | 2 | `VIO_STENCIL_REPLACE` | 2 |
+| `VIO_CMP_LEQUAL` | 3 | `VIO_STENCIL_INCR` (clamp at 255) | 3 |
+| `VIO_CMP_GREATER` | 4 | `VIO_STENCIL_DECR` (clamp at 0) | 4 |
+| `VIO_CMP_NOTEQUAL` | 5 | `VIO_STENCIL_INVERT` | 5 |
+| `VIO_CMP_GEQUAL` | 6 | `VIO_STENCIL_INCR_WRAP` | 6 |
+| `VIO_CMP_ALWAYS` | 7 | `VIO_STENCIL_DECR_WRAP` | 7 |
 
 ## Texture Filtering
 
@@ -77,7 +140,13 @@ Complete reference of all `VIO_*` constants.
 | `VIO_SHADER_GLSL` | 2 |
 | `VIO_SHADER_MSL` | 3 |
 | `VIO_SHADER_GLSL_RAW` | 4 |
-| `VIO_SHADER_HLSL` | 5 |
+
+::: info
+`VIO_SHADER_HLSL` (5) exists in the C headers only; the extension does not register it as a PHP
+constant (v2.34.1). HLSL reaches the D3D backends through the `'hlsl'` keys of
+[`vio_shader()`](/api/shaders#vio-shader), `vio_compute_pipeline()`, [`vio_rt_pipeline()`](/api/ray-tracing#vio-rt-pipeline) and
+[`vio_work_graph()`](/api/mesh-shaders#vio-work-graph).
+:::
 
 ## Vertex Attribute Usage
 
@@ -129,27 +198,83 @@ Complete reference of all `VIO_*` constants.
 | `VIO_FEATURE_MIPMAP_GEN` | 24 |
 | `VIO_FEATURE_MRT` | 25 |
 | `VIO_FEATURE_STORAGE_IMAGE` | 26 |
+| `VIO_FEATURE_FRAGMENT_STORAGE` | 27 |
+| `VIO_FEATURE_SAMPLER_FEEDBACK_GLSL` | 28 |
 | `VIO_FEATURE_VERTEX_STORAGE` | 30 |
+| `VIO_FEATURE_STENCIL` | 31 |
+| `VIO_FEATURE_GPU_TIMESTAMP` | 32 |
+| `VIO_FEATURE_FRAME_LATENCY` | 33 |
+| `VIO_FEATURE_HDR_OUTPUT` | 34 |
+| `VIO_FEATURE_INDIRECT_DRAW` | 35 |
+| `VIO_FEATURE_TEXTURE_ARRAY` | 36 |
+| `VIO_FEATURE_TEXTURE_COMPRESSION_BC` | 37 |
+| `VIO_FEATURE_SHADING_RATE` | 38 |
+| `VIO_FEATURE_RENDER_TARGET_LAYERED` | 39 |
+| `VIO_FEATURE_LAYERED_RENDER` | 40 |
+| `VIO_FEATURE_VERTEX_LAYER` | 41 |
+| `VIO_FEATURE_MULTI_VIEWPORT` | 42 |
+| `VIO_FEATURE_GEOMETRY_INSTANCING` | 43 |
+| `VIO_FEATURE_HLSL_STAGE_OVERRIDE` | 44 |
+| `VIO_FEATURE_SUBGROUP` | 45 |
+| `VIO_FEATURE_SUBGROUP_QUAD` | 46 |
+| `VIO_FEATURE_BARYCENTRICS` | 47 |
+| `VIO_FEATURE_ATOMIC64` | 48 |
+| `VIO_FEATURE_SHADER_FLOAT16` | 49 |
+| `VIO_FEATURE_BASE_VERTEX` | 50 |
+| `VIO_FEATURE_COMPUTE_DERIVATIVES` | 51 |
+| `VIO_FEATURE_SHADING_RATE_PRIMITIVE` | 52 |
+| `VIO_FEATURE_SHADING_RATE_IMAGE` | 53 |
+| `VIO_FEATURE_BINDLESS` | 54 |
+| `VIO_FEATURE_MESH_SHADER` | 55 |
+| `VIO_FEATURE_RAY_QUERY` | 56 |
+| `VIO_FEATURE_SAMPLER_FEEDBACK` | 57 |
+| `VIO_FEATURE_WORK_GRAPHS` | 58 |
+| `VIO_FEATURE_COOPERATIVE_MATRIX` | 59 |
+| `VIO_FEATURE_MULTIVIEW_GEOMETRY` | 60 |
+| `VIO_FEATURE_MULTIVIEW_TESSELLATION` | 61 |
+| `VIO_FEATURE_TEXTURE_COMPRESSION_ASTC` | 62 |
+| `VIO_FEATURE_DEPTH_MIPMAPS` | 63 |
+| `VIO_FEATURE_RASTER_RATE_MAP` | 64 |
+| `VIO_FEATURE_LONG_VECTOR` | 65 |
+| `VIO_FEATURE_SHADER_EXECUTION_REORDER` | 66 |
+| `VIO_FEATURE_OPACITY_MICROMAP` | 67 |
 | `VIO_FEATURE_RENDER_TARGET_DEPTH_SAMPLE` | 68 |
 | `VIO_FEATURE_RENDER_TARGET_STORAGE` | 69 |
 | `VIO_FEATURE_UPSCALER_NATIVE` | 70 |
 
-Query support at runtime with [`vio_supports_feature()`](/api/backend#vio-supports-feature). The per-backend matrix is in the [Backends guide](/guide/backends#backend-feature-matrix).
+Query support at runtime with [`vio_supports_feature()`](/api/backend#vio-supports-feature) and
+how a backend provides it (native or emulated) with [`vio_feature_info()`](/api/backend#vio-feature-info).
+[`vio_adapters()`](/api/backend#vio-adapters) lists the flags an adapter supports before a context exists.
+The per-backend matrix is in the [Backends guide](/guide/backends#backend-feature-matrix).
 
 ## Pixel Formats
 
-Render-target attachments (`attachments`) and `vio_pipeline(['attachments' => …])`.
+Render-target attachments (`attachments`), `vio_pipeline(['attachments' => …])` and the
+`'format'` of [`vio_texture()`](/api/textures#vio-texture).
 
-| Constant | Value |
-|---|---|
-| `VIO_FORMAT_RGBA8` | 0 |
-| `VIO_FORMAT_RGBA16F` | 1 |
-| `VIO_FORMAT_RGBA32F` | 2 |
-| `VIO_FORMAT_R11G11B10F` | 3 |
-| `VIO_FORMAT_RG16F` | 4 |
-| `VIO_FORMAT_R16F` | 5 |
-| `VIO_FORMAT_R32F` | 6 |
-| `VIO_FORMAT_R8` | 7 |
+| Constant | Value | Description |
+|---|---|---|
+| `VIO_FORMAT_RGBA8` | 0 | |
+| `VIO_FORMAT_RGBA16F` | 1 | |
+| `VIO_FORMAT_RGBA32F` | 2 | |
+| `VIO_FORMAT_R11G11B10F` | 3 | |
+| `VIO_FORMAT_RG16F` | 4 | |
+| `VIO_FORMAT_R16F` | 5 | |
+| `VIO_FORMAT_R32F` | 6 | |
+| `VIO_FORMAT_R8` | 7 | |
+| `VIO_FORMAT_RGB10A2` | 8 | HDR10 backbuffer format; readback expands to RGBA8 |
+| `VIO_FORMAT_BC1` | 9 | Block-compressed RGB(A), 1-bit alpha (DXT1) – `VIO_FEATURE_TEXTURE_COMPRESSION_BC` |
+| `VIO_FORMAT_BC3` | 10 | Block-compressed RGBA (DXT5) |
+| `VIO_FORMAT_BC4` | 11 | Block-compressed single channel (R) |
+| `VIO_FORMAT_BC5` | 12 | Block-compressed two channels (RG), normal maps |
+| `VIO_FORMAT_BC7` | 13 | High-quality block-compressed RGBA |
+| `VIO_FORMAT_ASTC_4x4` | 14 | ASTC LDR – `VIO_FEATURE_TEXTURE_COMPRESSION_ASTC` |
+| `VIO_FORMAT_ASTC_5x5` | 15 | |
+| `VIO_FORMAT_ASTC_6x6` | 16 | |
+| `VIO_FORMAT_ASTC_8x8` | 17 | |
+
+The block-compressed formats are texture formats (`vio_texture(['format' => …])`,
+[`vio_texture_ktx2()`](/api/textures#vio-texture-ktx2)), not render-target attachments.
 
 ## Render Targets
 
@@ -158,6 +283,41 @@ Render-target attachments (`attachments`) and `vio_pipeline(['attachments' => �
 | `VIO_MAX_COLOR_ATTACHMENTS` | 8 | Colour attachments per render target (`attachments`) |
 | `VIO_RT_DEPTH` | -1 | [`vio_render_target_texture()`](/api/render-targets#vio-render-target-texture): the depth of a colour target |
 | `VIO_RT_ALL_LAYERS` | -2 | [`vio_bind_render_target()`](/api/render-targets#vio-bind-render-target): every face / layer at once |
+| `VIO_MAX_VIEWPORTS` | 16 | Viewports per [`vio_viewports()`](/api/window#vio-viewports) call |
+
+## Variable Rate Shading
+
+[`vio_set_shading_rate()`](/api/shading-rate#vio-set-shading-rate) and the bytes of
+[`vio_set_shading_rate_image()`](/api/shading-rate#vio-set-shading-rate-image).
+
+| Constant | Value | Description |
+|---|---|---|
+| `VIO_SHADING_RATE_1X1` | 0 | Full rate (default) |
+| `VIO_SHADING_RATE_1X2` | 1 | One fragment invocation per 1 × 2 pixels |
+| `VIO_SHADING_RATE_2X1` | 2 | One per 2 × 1 pixels |
+| `VIO_SHADING_RATE_2X2` | 3 | A quarter of the fragment invocations |
+| `VIO_SHADING_RATE_4X4` | 4 | A sixteenth (needs the device's additional shading rates) |
+
+## Portable Upscaling
+
+`'mode'` of [`vio_upscale()`](/api/upscale#vio-upscale).
+
+| Constant | Value | Description |
+|---|---|---|
+| `VIO_UPSCALE_SPATIAL` | 0 | Edge-adaptive Lanczos-2 (default) |
+| `VIO_UPSCALE_TEMPORAL` | 1 | Jittered frames accumulated into a per-context history |
+
+## Sampler Feedback
+
+| Constant | Type | Description |
+|---|---|---|
+| `VIO_SAMPLER_FEEDBACK_GLSL` | string | GLSL prelude that declares `vio_write_feedback(sampler, uv)`; prepend it to a fragment shader ([details](/api/bindless#sampler-feedback)) |
+
+## Build Capabilities
+
+| Constant | Value | Description |
+|---|---|---|
+| `VIO_HAS_SHAPING` | 0 / 1 | 1 when the extension was built with HarfBuzz text shaping (`--with-harfbuzz`) |
 
 ## Native Upscalers
 
@@ -197,6 +357,16 @@ Render-target attachments (`attachments`) and `vio_pipeline(['attachments' => �
 | `VIO_MOUSE_RIGHT` | 1 |
 | `VIO_MOUSE_MIDDLE` | 2 |
 
+## Cursor Modes
+
+[`vio_set_cursor_mode()`](/api/mouse#vio-set-cursor-mode).
+
+| Constant | Value | Description |
+|---|---|---|
+| `VIO_CURSOR_NORMAL` | 0 | Visible, free cursor |
+| `VIO_CURSOR_DISABLED` | 1 | Hidden, confined, raw mouse motion (first-person controls) |
+| `VIO_CURSOR_HIDDEN` | 2 | Cursor hidden, not confined |
+
 ## Touch Phases
 
 Used by `vio_touch_get()` and `vio_touch_inject()` for the touch `phase` field.
@@ -235,6 +405,7 @@ Used by `vio_touch_get()` and `vio_touch_inject()` for the touch `phase` field.
 
 | Constant | Value |
 |---|---|
+| `VIO_KEY_UNKNOWN` | -1 |
 | `VIO_KEY_SPACE` | 32 |
 | `VIO_KEY_APOSTROPHE` | 39 |
 | `VIO_KEY_COMMA` | 44 |
