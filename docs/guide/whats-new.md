@@ -1,10 +1,50 @@
 # What's New
 
-This documentation describes **php-vio v2.32.0** (2026-10-09). The full commit-level history is in
+This documentation describes **php-vio v2.34.1** (2026-10-16). The full commit-level history is in
 [`CHANGELOG.md`](https://github.com/phpolygon/php-vio/blob/main/CHANGELOG.md); every release ships
 binaries for Linux x86_64/arm64, macOS x86_64/arm64 and Windows x64 (ts + nts) on the
 [Releases](https://github.com/phpolygon/php-vio/releases) page.
 
+## 2.34.1
+
+- **Audio symbols** – php-vio's bundled miniaudio now uses its own symbol names (`vio_ma_*`). Static
+  builds that link another extension's miniaudio into the same binary used to bind php-vio's calls to
+  that other (older) implementation; both now stay apart.
+
+## 2.34.0
+
+- **Ogg Opus and Ogg Vorbis** – playback ([`vio_audio_load()`](/api/audio#vio-audio-load),
+  [`vio_audio_load_data()`](/api/audio#vio-audio-load-data)), decoding and encoding without an audio
+  device ([`vio_audio_info()`](/api/audio#vio-audio-info), [`vio_audio_decode()`](/api/audio#vio-audio-decode),
+  [`vio_audio_encode()`](/api/audio#vio-audio-encode)), explicit engine start with a backend list
+  ([`vio_audio_init()`](/api/audio#vio-audio-init), `VIO_AUDIO_BACKEND`, the `null` device for
+  headless servers and CI) and [`vio_audio_formats()`](/api/audio#vio-audio-formats). See the
+  [Audio guide](/guide/audio).
+
+## 2.33.0
+
+- **System clipboard** – [`vio_clipboard_get()` / `vio_clipboard_set()`](/api/platform#vio-clipboard-get)
+  on Win32, Cocoa, X11 and GLFW, process-local where the platform has none.
+- **Layout key names** – [`vio_key_name()`](/api/keyboard#vio-key-name) maps a physical
+  `VIO_KEY_*` position to the character it types in the current keyboard layout.
+
+## 2.32.1 / 2.32.2
+
+- **D3D12** – compute and mip-generation descriptor blocks are no longer reused while the GPU
+  still needs them (many dispatches or `vio_generate_mipmaps()` calls per frame).
+
+## API reference catch-up
+
+The API reference now covers every function of the extension. Pages added for functions that
+shipped in earlier releases: [Touch](/api/touch), [Input Recording & Replay](/api/input-recording),
+[Platform & Clipboard](/api/platform), [GPU Profiling](/api/profiling),
+[Batches, Bundles & Indirect Draws](/api/draw-submission), [Portable Upscaling](/api/upscale),
+[Ray Tracing](/api/ray-tracing), [Mesh Shaders & Work Graphs](/api/mesh-shaders),
+[Variable Rate Shading](/api/shading-rate) and [Bindless & Sampler Feedback](/api/bindless); backend
+selection and adapters ([`vio_rank_backends()`](/api/backend#vio-rank-backends),
+[`vio_adapters()`](/api/backend#vio-adapters), [`vio_feature_info()`](/api/backend#vio-feature-info)),
+monitors and video modes ([`vio_monitors()`](/api/window#vio-monitors)), virtual gamepads, KTX2
+textures, font faces and CPU text bitmaps, and the [constants](/api/constants) were completed.
 ## 2.32.0
 
 - **8 colour attachments** — `VIO_MAX_COLOR_ATTACHMENTS` = 8 (was 4) on every backend, enough for a
