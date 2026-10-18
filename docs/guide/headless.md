@@ -93,7 +93,7 @@ Text, scroll, touch and gamepads can be injected too – [`vio_inject_char()`](/
 
 ## Running the Test Suite
 
-php-vio includes 250 PHPT tests (v2.34.1):
+php-vio includes 251 PHPT tests (v2.35.0):
 
 ```bash
 NO_INTERACTION=1 TEST_PHP_EXECUTABLE=$(which php) \

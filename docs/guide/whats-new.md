@@ -1,9 +1,19 @@
 # What's New
 
-This documentation describes **php-vio v2.34.1** (2026-10-16). The full commit-level history is in
+This documentation describes **php-vio v2.35.0** (2026-10-18). The full commit-level history is in
 [`CHANGELOG.md`](https://github.com/phpolygon/php-vio/blob/main/CHANGELOG.md); every release ships
 binaries for Linux x86_64/arm64, macOS x86_64/arm64 and Windows x64 (ts + nts) on the
 [Releases](https://github.com/phpolygon/php-vio/releases) page.
+
+## 2.35.0
+
+- **Keypad constants** – `VIO_KEY_KP_0` – `VIO_KEY_KP_9` and `VIO_KEY_KP_DECIMAL` –
+  `VIO_KEY_KP_EQUAL` (320–336) are registered as PHP constants ([Numpad Keys](/api/constants#numpad-keys));
+  the codes themselves were already reported on every platform.
+- **Stub** – `vio.stub.php` now declares [`vio_gpu_flush()`](/api/context#vio-gpu-flush), so IDEs and
+  static analysers see it; stub and registered functions match one to one (test 247).
+- `VIO_UINT1` – `VIO_UINT4` and `VIO_SHADER_HLSL` stay internal on purpose – the reasons are under
+  [Vertex Formats](/api/constants#vertex-formats) and [Shader Formats](/api/constants#shader-formats).
 
 ## 2.34.1
 
@@ -45,9 +55,9 @@ selection and adapters ([`vio_rank_backends()`](/api/backend#vio-rank-backends),
 [`vio_adapters()`](/api/backend#vio-adapters), [`vio_feature_info()`](/api/backend#vio-feature-info)),
 monitors and video modes ([`vio_monitors()`](/api/window#vio-monitors)), virtual gamepads, KTX2
 textures, font faces and CPU text bitmaps, and the [constants](/api/constants) were completed.
-Later corrections: [`vio_gpu_flush()`](/api/context#vio-gpu-flush) (registered by the extension
-but missing from `vio.stub.php`) is documented, the keypad keys `VIO_KEY_KP_*` are marked as C-only
-names (not registered as PHP constants), and the [start-up warnings without a
+Later corrections: [`vio_gpu_flush()`](/api/context#vio-gpu-flush) (registered by the extension;
+in `vio.stub.php` since 2.35.0) is documented, the keypad keys `VIO_KEY_KP_*` (PHP constants since
+2.35.0) are listed, and the [start-up warnings without a
 display](/api/platform#start-up-without-a-display) are explained.
 ## 2.32.0
 

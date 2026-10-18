@@ -52,7 +52,10 @@ Create a mesh from vertex data.
 | `VIO_INT3` | 3 ints | 12 bytes |
 | `VIO_INT4` | 4 ints | 16 bytes |
 
-`VIO_UINT1` – `VIO_UINT4` are not registered as PHP constants (v2.34.1).
+Vertex data is always uploaded as 32-bit floats, and only `VIO_FLOAT1` – `VIO_FLOAT4` set the
+component count – in a flat layout any other value (the `VIO_INT*` constants included) counts as
+3 floats. `VIO_UINT1` – `VIO_UINT4` are deliberately not PHP constants (there is no integer vertex
+path; see [Vertex Formats](/api/constants#vertex-formats)).
 
 ### Indices
 

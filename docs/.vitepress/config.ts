@@ -2,7 +2,7 @@ import { defineConfig } from 'vitepress'
 
 export default defineConfig({
   title: 'php-vio',
-  description: 'GPU Rendering, Audio, Video & Input for PHP (php-vio v2.34.1)',
+  description: 'GPU Rendering, Audio, Video & Input for PHP (php-vio v2.35.0)',
   lang: 'en-US',
   base: '/php-vio-docs/',
 

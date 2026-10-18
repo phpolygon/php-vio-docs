@@ -16,8 +16,14 @@ Complete reference of all `VIO_*` constants.
 | `VIO_INT4` | 4 | int |
 
 ::: info
-The C headers also define `VIO_UINT1` – `VIO_UINT4`, but the extension does not register them as
-PHP constants (v2.34.1). Use the integer formats or the dict layout with `'components'`.
+`vio_mesh()` stores every vertex as 32-bit floats, and its layout parser reads the component
+count only from `VIO_FLOAT1` – `VIO_FLOAT4`: in a flat layout any other value (the `VIO_INT*`
+constants included) counts as 3 floats. Use `VIO_FLOAT1` – `VIO_FLOAT4` or the dict layout with
+`'components'`.
+
+The C headers also define `VIO_UINT1` – `VIO_UINT4`. They are deliberately not registered as PHP
+constants: there is no integer vertex path yet (the backend input layouts come from SPIR-V
+reflection as `FLOAT1` – `FLOAT4`), so a UINT layout would only upload floats under another name.
 :::
 
 ## Index Types
@@ -142,8 +148,9 @@ gated by `VIO_FEATURE_STENCIL`.
 | `VIO_SHADER_GLSL_RAW` | 4 |
 
 ::: info
-`VIO_SHADER_HLSL` (5) exists in the C headers only; the extension does not register it as a PHP
-constant (v2.34.1). HLSL reaches the D3D backends through the `'hlsl'` keys of
+`VIO_SHADER_HLSL` (5) exists in the C headers only and is deliberately not a PHP constant:
+`vio_shader()` always hands the backends SPIR-V, because the D3D input layout, cbuffer layout and
+sampler registers come from SPIR-V reflection – a whole shader in HLSL would have none. HLSL reaches the D3D backends through the `'hlsl'` keys of
 [`vio_shader()`](/api/shaders#vio-shader), `vio_compute_pipeline()`, [`vio_rt_pipeline()`](/api/ray-tracing#vio-rt-pipeline) and
 [`vio_work_graph()`](/api/mesh-shaders#vio-work-graph).
 :::
@@ -441,18 +448,17 @@ Used by `vio_touch_get()` and `vio_touch_inject()` for the touch `phase` field.
 
 ### Numpad Keys
 
-The keypad keys are reported with these codes on every platform, but the extension does **not**
-register them as PHP constants (v2.34.1) – the names below exist in the C headers only. Compare
-against the integer values (or define the names yourself):
+The keypad keys are reported with these codes on every platform and are PHP constants since
+**v2.35.0** (before that the names existed in the C headers only – on older versions compare
+against the integer values):
 
 ```php
-const KP_ENTER = 335; // VIO_KEY_KP_ENTER is not a PHP constant
-if (vio_key_just_pressed($ctx, VIO_KEY_ENTER) || vio_key_just_pressed($ctx, KP_ENTER)) {
+if (vio_key_just_pressed($ctx, VIO_KEY_ENTER) || vio_key_just_pressed($ctx, VIO_KEY_KP_ENTER)) {
     submit();
 }
 ```
 
-| C name | Value |
+| Constant | Value |
 |---|---|
 | `VIO_KEY_KP_0` – `VIO_KEY_KP_9` | 320–329 |
 | `VIO_KEY_KP_DECIMAL` | 330 |

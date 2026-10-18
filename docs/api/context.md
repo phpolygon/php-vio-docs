@@ -89,7 +89,8 @@ needed in a normal frame loop and costs the CPU–GPU overlap.
 | Metal | the last presented command buffer (`waitUntilCompleted`) |
 | Vulkan, `null` | nothing – the call returns at once |
 
-Warns when the context is not initialized.
+Warns when the context is not initialized. Declared in `vio.stub.php` since v2.35.0 (the function
+itself has been registered much longer).
 
 ## vio_clear
 
