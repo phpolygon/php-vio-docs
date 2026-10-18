@@ -1,6 +1,6 @@
 # Building from Source
 
-php-vio is a standard PHP extension built with phpize/autotools. All features are optional — enable only what you need.
+php-vio is a standard PHP extension built with phpize/autotools. All features are optional – enable only what you need.
 
 ## Build Flags
 

@@ -28,7 +28,7 @@ vio_set_title($ctx, "New Title - FPS: 60");
 // Window size (screen coordinates)
 [$w, $h] = vio_window_size($ctx);
 
-// Framebuffer size (pixels — may differ on HiDPI)
+// Framebuffer size (pixels – may differ on HiDPI)
 [$fbW, $fbH] = vio_framebuffer_size($ctx);
 
 // Resize the window
@@ -45,7 +45,7 @@ vio_set_window_size($ctx, 1920, 1080);
 $ratio = vio_pixel_ratio($ctx);
 ```
 
-On a Retina display, `vio_pixel_ratio()` returns `2.0` — the framebuffer is twice the window size in each dimension.
+On a Retina display, `vio_pixel_ratio()` returns `2.0` – the framebuffer is twice the window size in each dimension.
 
 ## Fullscreen Modes
 

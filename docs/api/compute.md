@@ -3,7 +3,7 @@
 GPU compute: storage buffers, storage images, dispatch (synchronous or recorded into the
 frame) and the readback-free path from a compute-written buffer into the vertex stage.
 
-Gate with `vio_supports_feature($ctx, VIO_FEATURE_COMPUTE)` — OpenGL ≥ 4.3 (never on macOS),
+Gate with `vio_supports_feature($ctx, VIO_FEATURE_COMPUTE)` – OpenGL ≥ 4.3 (never on macOS),
 D3D11, D3D12, Vulkan and Metal report it. Storage images additionally need
 `VIO_FEATURE_STORAGE_IMAGE`, the vertex-stage path `VIO_FEATURE_VERTEX_STORAGE`.
 
@@ -44,8 +44,8 @@ VioBuffer|false vio_storage_buffer(VioContext $context, array $config)
 | Key | Type | Default | Description |
 |---|---|---|---|
 | `size` | int | required | Size in bytes |
-| `data` | string | — | Initial contents (input buffers); omitted = zero-filled (output buffers) |
-| `stride` | int | `4` | Element stride. Use `4` for raw `float[]`/`int[]` arrays — D3D12 maps other strides to structured buffers |
+| `data` | string | – | Initial contents (input buffers); omitted = zero-filled (output buffers) |
+| `stride` | int | `4` | Element stride. Use `4` for raw `float[]`/`int[]` arrays – D3D12 maps other strides to structured buffers |
 
 ## vio_compute_bind_buffer
 

@@ -1,6 +1,6 @@
 # Keyboard & Mouse
 
-php-vio provides comprehensive input handling via GLFW. You can poll state per-frame or register event callbacks.
+php-vio provides comprehensive input handling through the active window platform – its native Win32, Cocoa, X11 or Wayland layer, or GLFW (see [`vio_platform()`](/api/platform#vio-platform)). Key codes are the same on every platform. You can poll state per-frame or register event callbacks.
 
 ## Keyboard
 
@@ -18,7 +18,7 @@ if (vio_key_just_pressed($ctx, VIO_KEY_SPACE)) {
 }
 
 // Was the key just released this frame?
-if (vio_key_released($ctx, VIO_KEY_SHIFT)) {
+if (vio_key_released($ctx, VIO_KEY_LEFT_SHIFT)) {
     stopSprinting();
 }
 ```

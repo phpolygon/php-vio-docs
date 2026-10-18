@@ -101,10 +101,10 @@ vio_draw($ctx, $mesh);
 
 | Option | Type | Default | Values |
 |---|---|---|---|
-| `shader` | VioShader | required | — |
+| `shader` | VioShader | required | – |
 | `topology` | int | `VIO_TRIANGLES` | Any `VIO_*` topology |
 | `cull_mode` | int | `VIO_CULL_NONE` | `NONE`, `BACK`, `FRONT` |
-| `depth_test` | bool | `false` | — |
+| `depth_test` | bool | `false` | – |
 | `blend` | int | `VIO_BLEND_NONE` | `NONE`, `ALPHA`, `ADDITIVE` |
 
 ## Drawing
@@ -129,7 +129,7 @@ vio_draw_3d($ctx);
 | | |
 |---|---|
 | ![Lit meshes](/gallery/3d_lit_meshes.png) | ![Instancing](/gallery/instancing.png) |
-| `vio_draw` — three meshes, one Blinn-Phong shader | `vio_draw_instanced` — 400 cubes, one draw call |
+| `vio_draw` – three meshes, one Blinn-Phong shader | `vio_draw_instanced` – 400 cubes, one draw call |
 
 ## Textures
 
@@ -153,7 +153,7 @@ See [Textures API](/api/textures) for filtering, wrapping, mipmaps, and async lo
 | | |
 |---|---|
 | ![Sampler filter and wrap grid](/gallery/sampler_filter_wrap.png) | ![Anisotropic filtering](/gallery/anisotropy.png) |
-| `filter` × `wrap` — the same 4×4 checker with `VIO_FILTER_LINEAR` / `VIO_FILTER_NEAREST` and `VIO_WRAP_REPEAT` / `CLAMP` / `MIRROR` | `['anisotropy' => 16]` (right) keeps the far end of the plane sharp where trilinear (left) blurs |
+| `filter` × `wrap` – the same 4×4 checker with `VIO_FILTER_LINEAR` / `VIO_FILTER_NEAREST` and `VIO_WRAP_REPEAT` / `CLAMP` / `MIRROR` | `['anisotropy' => 16]` (right) keeps the far end of the plane sharp where trilinear (left) blurs |
 
 ## Uniform Buffers
 

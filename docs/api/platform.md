@@ -25,11 +25,25 @@ extension. The platform decides what window-system services can do – the clipb
 names ([`vio_key_name()`](/api/keyboard#vio-key-name)) and the monitor list
 ([`vio_monitors()`](/api/window#vio-monitors)).
 
+Without `VIO_PLATFORM` the native layer of the OS wins when it is built in (on Linux Wayland
+before X11, Wayland only inside a Wayland session), then GLFW, then `null`.
+
 ```php
 if (vio_platform() === 'null') {
     // no window system: render headless only
 }
 ```
+
+### Start-up without a display
+
+The active platform is started when the extension loads (`MINIT`), before any PHP code runs – every
+`php` process that loads php-vio does this, also CLI scripts that never open a window. When that
+platform is GLFW and there is no display (CI, SSH session, build container), `glfwInit()` fails and
+PHP prints two warnings at start-up: `GLFW error …` and `Failed to initialize GLFW`. They are
+harmless for processes that never need the window system – module start-up still succeeds; only
+what needs it (a window, an OpenGL context) fails later.
+Set `VIO_PLATFORM=null` for such processes to skip the window system and the warnings. The
+native X11 layer fails silently without a display.
 
 ## vio_thermal_state
 

@@ -31,7 +31,7 @@ Create a texture from a file or raw pixel data.
 | `filter` | int | `VIO_FILTER_LINEAR` | Texture filtering |
 | `wrap` | int | `VIO_WRAP_REPEAT` | Texture wrapping |
 | `mipmaps` | bool | `false` | Upload a full mip chain (trilinear sampling) |
-| `anisotropy` | int | `1` | Anisotropic filtering level 1–16 (v2.10; OpenGL, D3D11, D3D12, Vulkan — Metal ignores it) |
+| `anisotropy` | int | `1` | Anisotropic filtering level 1–16 (v2.10; OpenGL, D3D11, D3D12, Vulkan – Metal ignores it) |
 | `storage` | bool | `false` | Storage image for compute (`image2D`, see [Compute](/api/compute)); `data` is optional (zero-initialised) |
 | `format` | int | `VIO_FORMAT_RGBA8` | Or `VIO_FORMAT_BC1` / `BC3` / `BC4` / `BC5` / `BC7` for block-compressed `data` (`VIO_FEATURE_TEXTURE_COMPRESSION_BC`), `VIO_FORMAT_ASTC_*` (`VIO_FEATURE_TEXTURE_COMPRESSION_ASTC`) |
 | `layers` | int | `1` | > 1: 2D texture array for `sampler2DArray` (`VIO_FEATURE_TEXTURE_ARRAY`) |
@@ -66,16 +66,16 @@ Volume textures back features like Fieldtracing's baked Signed Distance Field an
 
 | Key | Type | Default | Description |
 |---|---|---|---|
-| `data` | string | — | Raw RGBA8 voxels, `width*height*depth*4` bytes, Z-slices in ascending order |
-| `width` | int | — | Volume width in voxels |
-| `height` | int | — | Volume height in voxels |
-| `depth` | int | — | Volume depth in voxels (number of Z-slices) |
+| `data` | string | – | Raw RGBA8 voxels, `width*height*depth*4` bytes, Z-slices in ascending order |
+| `width` | int | – | Volume width in voxels |
+| `height` | int | – | Volume height in voxels |
+| `depth` | int | – | Volume depth in voxels (number of Z-slices) |
 | `filter` | int | `VIO_FILTER_LINEAR` | Texture filtering |
 | `wrap` | int | `VIO_WRAP_CLAMP` | Texture wrapping (clamp is the usual choice for volumes) |
 | `anisotropy` | int | `1` | Anisotropic filtering level 1–16 |
 | `storage` | bool | `false` | Storage image for compute (`image3D`) |
 
-Returns `false` on a backend that has no 3D-texture path, on a size/data mismatch, or on upload failure. Probe support with `vio_supports_feature($ctx, VIO_FEATURE_TEXTURE_3D)` before relying on it — OpenGL, D3D11, D3D12, Metal and Vulkan all report it.
+Returns `false` on a backend that has no 3D-texture path, on a size/data mismatch, or on upload failure. Probe support with `vio_supports_feature($ctx, VIO_FEATURE_TEXTURE_3D)` before relying on it – OpenGL, D3D11, D3D12, Metal and Vulkan all report it.
 
 ```php
 // width*height*depth voxels, 4 bytes each (RGBA8)
@@ -151,7 +151,7 @@ Returns `[width, height]` in pixels.
 bool vio_texture_update(VioContext $context, VioTexture $texture, string $data, int $x = 0, int $y = 0, int $width = 0, int $height = 0)
 ```
 
-Upload RGBA8 pixels into an existing texture — a sub-region (`$x`, `$y`, `$width`, `$height`) or, with the size arguments omitted, the whole texture. Meant for streaming content (video frames, dynamic atlases) without recreating the texture. Available on every backend (D3D12 since v2.10).
+Upload RGBA8 pixels into an existing texture – a sub-region (`$x`, `$y`, `$width`, `$height`) or, with the size arguments omitted, the whole texture. Meant for streaming content (video frames, dynamic atlases) without recreating the texture. Available on every backend (D3D12 since v2.10).
 
 ```php
 vio_texture_update($ctx, $tex, $frameRgba);                  // whole texture
@@ -177,9 +177,9 @@ array|null|false vio_texture_load_poll(mixed $handle)
 Poll the status of an async texture load.
 
 **Returns:**
-- `null` — Still loading
-- `false` — Load failed
-- `array` — Load complete: `["width" => int, "height" => int, "data" => string]`
+- `null` – Still loading
+- `false` – Load failed
+- `array` – Load complete: `["width" => int, "height" => int, "data" => string]`
 
 ```php
 $handle = vio_texture_load_async("large_texture.png");

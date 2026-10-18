@@ -53,7 +53,7 @@ void vio_bind_cubemap(VioContext $context, VioCubemap $cubemap, int $slot = 0)
 ```
 
 Bind a cubemap to a texture unit. Use `samplerCube` in GLSL to sample it. A unit holds one
-sampler — do not bind a 2D texture and a cubemap to the same slot.
+sampler – do not bind a 2D texture and a cubemap to the same slot.
 
 ```glsl
 layout(binding = 2) uniform samplerCube u_env;

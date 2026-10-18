@@ -47,9 +47,9 @@ Register a key event callback.
 function(int $key, int $action, int $mods): void
 ```
 
-- `$key` — Key constant (`VIO_KEY_*`)
-- `$action` — `VIO_PRESS`, `VIO_RELEASE`, or `VIO_REPEAT`
-- `$mods` — Bitmask of modifiers (`VIO_MOD_*`)
+- `$key` – Key constant (`VIO_KEY_*`)
+- `$action` – `VIO_PRESS`, `VIO_RELEASE`, or `VIO_REPEAT`
+- `$mods` – Bitmask of modifiers (`VIO_MOD_*`)
 
 ## vio_on_char
 

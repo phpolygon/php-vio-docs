@@ -62,7 +62,7 @@ A uniform buffer feeds the named uniform block declared at that binding (`layout
 ## Vertex-stage storage buffers (readback-free instancing)
 
 A compute-written storage buffer can be bound directly to the **graphics**
-pipeline so a vertex shader reads per-instance data via `gl_InstanceIndex` — no
+pipeline so a vertex shader reads per-instance data via `gl_InstanceIndex` – no
 GPU→CPU readback. Gate on `vio_supports_feature($ctx, VIO_FEATURE_VERTEX_STORAGE)`
 (OpenGL ≥ 4.3, D3D11, D3D12, Vulkan and Metal; where it is false, callers fall back to
 `vio_storage_buffer_read()` + `vio_draw_instanced()`).
@@ -93,7 +93,7 @@ indexes the bound buffer via `gl_InstanceIndex`.
 vio_compute_bind_buffer($ctx, $pipe, $matrixBuf, 0, VIO_COMPUTE_WRITE);
 vio_compute_dispatch($ctx, $pipe, $groups, 1, 1);
 
-// ...then the graphics pass reads them straight from the buffer — no readback.
+// ...then the graphics pass reads them straight from the buffer – no readback.
 vio_bind_pipeline($ctx, $gfxPipe);
 vio_bind_storage_buffer($ctx, $matrixBuf, 0, VIO_COMPUTE_READ);
 vio_draw_instanced_from_buffer($ctx, $mesh, $n);

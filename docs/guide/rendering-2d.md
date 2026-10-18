@@ -6,15 +6,15 @@ php-vio includes a built-in 2D batch renderer that handles shapes, sprites, and 
 
 1. Call `vio_rect()`, `vio_circle()`, `vio_sprite()`, etc. to **queue** primitives
 2. Each primitive has a `z` value for depth sorting (default: `0.0`)
-3. Call `vio_draw_2d($ctx)` to **flush** the batch — sorts by z, batches by texture, renders
+3. Call `vio_draw_2d($ctx)` to **flush** the batch – sorts by z, batches by texture, renders
 
-The batch starts with a capacity of **4096 items** (24,576 vertices) and grows dynamically as needed — there is no hard upper limit.
+The batch starts with a capacity of **4096 items** (24,576 vertices) and grows dynamically as needed – there is no hard upper limit.
 
 ## Shapes
 
 ![vio_rect, vio_rounded_rect, vio_circle and vio_line in one z-sorted batch](/gallery/2d_shapes.png)
 
-*Rects, rounded rects, circles (filled and outlined) and lines — one batch, one draw call. Rendered headless by [`examples/gallery.php`](/guide/gallery).*
+*Rects, rounded rects, circles (filled and outlined) and lines – one batch, one draw call. Rendered headless by [`examples/gallery.php`](/guide/gallery).*
 
 ### Rectangle
 
@@ -101,11 +101,11 @@ $size = vio_text_measure($font, "Hello, World!");
 // $size = ["width" => 142.5, "height" => 24.0]
 ```
 
-Font rendering uses stb_truetype with a 4096x4096 atlas texture that supports multi-range Unicode — including Latin, Greek, Cyrillic, CJK, Hangul, and more (33,000+ glyphs). See the [Fonts API](/api/fonts) for full details.
+Font rendering uses stb_truetype with a 4096x4096 atlas texture that supports multi-range Unicode – including Latin, Greek, Cyrillic, CJK, Hangul, and more (33,000+ glyphs). See the [Fonts API](/api/fonts) for full details.
 
 ![Sprites and shaped text: tinted sprites, Arabic RTL, Thai clusters, word wrap](/gallery/2d_sprites_text.png)
 
-*`vio_sprite` with tint and scale next to `vio_text` — HarfBuzz shaping handles Arabic (RTL, joining) and Thai (clusters); `max_width` wraps the paragraph on the right.*
+*`vio_sprite` with tint and scale next to `vio_text` – HarfBuzz shaping handles Arabic (RTL, joining) and Thai (clusters); `max_width` wraps the paragraph on the right.*
 
 ## Colors
 
@@ -119,7 +119,7 @@ Colors are 32-bit unsigned integers in **AARRGGBB** format:
 0xFFFFFF80  // White, alpha=80 (50% transparent)
 ```
 
-The `color` option is an alias for `fill` — both work.
+The `color` option is an alias for `fill` – both work.
 
 ## Z-Ordering
 
@@ -166,7 +166,7 @@ vio_rect($ctx, 0, 0, 800, 600, ["color" => 0xFF0000FF]);
 vio_pop_scissor($ctx);
 ```
 
-Nested scissor rects are intersected — the visible area gets smaller with each push.
+Nested scissor rects are intersected – the visible area gets smaller with each push.
 
 ## Flushing
 

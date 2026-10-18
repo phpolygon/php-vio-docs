@@ -29,7 +29,7 @@ Auto-selection is platform-specific:
 
 With `vio_create("auto", ["prefer" => "performance" | "quality" | "compat", "require" => [VIO_FEATURE_*, …]])` the fixed priority list is replaced by a ranking of each backend's preferred adapter (vendor profile, discrete before integrated, software rasterizers last, required features) – see [`vio_rank_backends()`](/api/backend#vio-rank-backends). `"benchmark" => true` measures the top candidates once and caches the result ([`vio_benchmark_backends()`](/api/backend#vio-benchmark-backends)). [`vio_backend_info()`](/api/backend#vio-backend-info)`["selected_by"]` tells how a context was chosen.
 
-On macOS, Vulkan (via MoltenVK) is supported but opt-in — you must request it explicitly.
+On macOS, Vulkan (via MoltenVK) is supported but opt-in – you must request it explicitly.
 
 ## OpenGL (3.3 – 4.6 Core)
 
@@ -117,7 +117,7 @@ Benchmarked on Apple M2 Pro (macOS, 1280x720, VSync off). Measures draw + flush 
 | p95 | 306-601 us | 437-754 us |
 | p99 | 375-674 us | 907-953 us |
 
-Metal is slightly slower on simple scenes due to command encoding overhead, but **20% faster on heavy scenes** (1000+ draw calls with text). More importantly, Metal delivers **30-40% better tail latency** — fewer frame time spikes and more consistent rendering.
+Metal is slightly slower on simple scenes due to command encoding overhead, but **20% faster on heavy scenes** (1000+ draw calls with text). More importantly, Metal delivers **30-40% better tail latency** – fewer frame time spikes and more consistent rendering.
 
 ## Direct3D 11
 
@@ -130,7 +130,7 @@ Immediate-mode DirectX backend. Broad hardware compatibility on Windows.
 | Platforms | Windows only |
 | Headless | ✅ via WARP software renderer |
 
-D3D11 uses an immediate-mode rendering model — draw commands are executed directly through `ID3D11DeviceContext`. This makes it simpler than D3D12 while still providing good performance. In headless mode, the backend automatically selects the WARP software renderer (Windows Advanced Rasterization Platform).
+D3D11 uses an immediate-mode rendering model – draw commands are executed directly through `ID3D11DeviceContext`. This makes it simpler than D3D12 while still providing good performance. In headless mode, the backend automatically selects the WARP software renderer (Windows Advanced Rasterization Platform).
 
 ### Shader Pipeline
 
@@ -140,7 +140,7 @@ GLSL shaders are automatically compiled through a multi-stage pipeline:
 GLSL → SPIR-V (glslang) → HLSL (SPIRV-Cross) → DXBC (D3DCompile)
 ```
 
-You write standard GLSL — the backend handles the rest. The transpiled HLSL targets Shader Model 5.0 (`vs_5_0`, `ps_5_0`).
+You write standard GLSL – the backend handles the rest. The transpiled HLSL targets Shader Model 5.0 (`vs_5_0`, `ps_5_0`).
 
 ### Build Flags
 

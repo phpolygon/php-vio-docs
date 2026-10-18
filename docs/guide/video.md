@@ -46,7 +46,7 @@ On macOS, the recorder tries VideoToolbox (Apple's hardware encoder) first. If i
 The recorder captures exactly what's in the framebuffer at the time of `vio_recorder_capture()`. This means:
 
 - Call it **after** `vio_end()` for the final composited frame
-- Every call adds exactly one frame — deterministic output regardless of actual FPS
+- Every call adds exactly one frame – deterministic output regardless of actual FPS
 - You can record at a different FPS than your render loop
 
 ```php

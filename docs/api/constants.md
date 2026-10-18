@@ -441,7 +441,18 @@ Used by `vio_touch_get()` and `vio_touch_inject()` for the touch `phase` field.
 
 ### Numpad Keys
 
-| Constant | Value |
+The keypad keys are reported with these codes on every platform, but the extension does **not**
+register them as PHP constants (v2.34.1) – the names below exist in the C headers only. Compare
+against the integer values (or define the names yourself):
+
+```php
+const KP_ENTER = 335; // VIO_KEY_KP_ENTER is not a PHP constant
+if (vio_key_just_pressed($ctx, VIO_KEY_ENTER) || vio_key_just_pressed($ctx, KP_ENTER)) {
+    submit();
+}
+```
+
+| C name | Value |
 |---|---|
 | `VIO_KEY_KP_0` – `VIO_KEY_KP_9` | 320–329 |
 | `VIO_KEY_KP_DECIMAL` | 330 |

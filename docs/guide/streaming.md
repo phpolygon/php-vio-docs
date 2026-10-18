@@ -53,4 +53,4 @@ Each call to `vio_stream_push()`:
 2. Encodes the frame using FFmpeg (H.264)
 3. Sends the encoded packet to the remote endpoint
 
-The stream runs in real-time — if your render loop is slower than the target FPS, frames will be dropped.
+The stream runs in real-time – if your render loop is slower than the target FPS, frames will be dropped.

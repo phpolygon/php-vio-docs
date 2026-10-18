@@ -26,10 +26,10 @@ Create an offscreen render target. New targets start defined: colour cleared to 
 | `width` | int | required* | Target width in pixels |
 | `height` | int | required* | Target height in pixels |
 | `depth_only` | bool | `false` | Depth-only target (shadow maps); sample it with `sampler2DShadow` or as a grey depth texture |
-| `hdr` | bool | `false` | RGBA16F colour attachment instead of RGBA8 — values above 1.0 survive |
+| `hdr` | bool | `false` | RGBA16F colour attachment instead of RGBA8 – values above 1.0 survive |
 | `samples` | int | `0` | MSAA sample count (2/4/8). Resolved to a single-sample texture on unbind / readback. Colour targets only |
 | `cube` | bool | `false` | Cube render target with six faces; use `size` instead of `width`/`height` |
-| `size` | int | — | Face size of a cube target (*required with `cube`) |
+| `size` | int | – | Face size of a cube target (*required with `cube`) |
 | `mipmaps` | bool | `false` | Allocate a full mip chain so [`vio_generate_mipmaps()`](#vio-generate-mipmaps) / `textureLod` work |
 | `attachments` | int[] | `[VIO_FORMAT_RGBA8]` | Multiple render targets: one `VIO_FORMAT_*` per colour attachment (up to `VIO_MAX_COLOR_ATTACHMENTS` = 8; on Vulkan more than 4 needs a device with that `maxColorAttachments`). Overrides `hdr` |
 | `storage` | bool | `false` | The colour attachments double as compute storage images ([below](#render-targets-as-storage-images)). Single-sample 2D colour targets; needs `VIO_FEATURE_RENDER_TARGET_STORAGE` (D3D12, Vulkan) |
@@ -129,11 +129,11 @@ Bind `$target`, or `null` to return to the default framebuffer.
 VioTexture|false vio_render_target_texture(VioRenderTarget $target, int $attachment = 0)
 ```
 
-The colour attachment (`$attachment` indexes the MRT list) — or the depth texture of a depth-only
-target — as a `VioTexture` for sampling in later passes. The texture is owned by the render
+The colour attachment (`$attachment` indexes the MRT list) – or the depth texture of a depth-only
+target – as a `VioTexture` for sampling in later passes. The texture is owned by the render
 target; keep the target alive while you use it.
 
-`VIO_RT_DEPTH` selects the **depth of a colour target** (plain or MRT) — the scene depth a
+`VIO_RT_DEPTH` selects the **depth of a colour target** (plain or MRT) – the scene depth a
 temporal resolve, motion-vector dilation or SSAO reads next to the G-buffer. It needs
 `VIO_FEATURE_RENDER_TARGET_DEPTH_SAMPLE` (OpenGL, D3D11, D3D12, Vulkan, Metal) and a single-sample
 2D target (no `samples`, `cube`, `layers` or active `rate_map`; those return `false`). Like a
@@ -194,7 +194,7 @@ Requires `VIO_FEATURE_MIPMAP_GEN` (OpenGL, D3D11, D3D12, Metal).
 ## Render targets as storage images
 
 A target created with `'storage' => true` is drawn into like any other and its colour attachments
-can also be read and written by a compute kernel — a TAA history or an upscaler output updated in
+can also be read and written by a compute kernel – a TAA history or an upscaler output updated in
 compute and then sampled or drawn into again. Bind an attachment with
 [`vio_compute_bind_image()`](/api/compute) and declare it in GLSL with the attachment's own format
 qualifier:

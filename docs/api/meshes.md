@@ -21,7 +21,7 @@ Create a mesh from vertex data.
 
 ### Layout Format
 
-**Simple** — auto-assigned locations starting at 0:
+**Simple** – auto-assigned locations starting at 0:
 
 ```php
 "layout" => [VIO_FLOAT3, VIO_FLOAT2, VIO_FLOAT3]
@@ -30,7 +30,7 @@ Create a mesh from vertex data.
 // location 2: vec3 (12 bytes)
 ```
 
-**Explicit** — specify locations manually:
+**Explicit** – specify locations manually:
 
 ```php
 "layout" => [
@@ -111,8 +111,8 @@ void vio_draw_instanced(VioContext $context, VioMesh $mesh, float[] $matrices, i
 
 Draw a mesh multiple times with per-instance model matrices.
 
-- `$matrices` — Flat array of `4x4` matrices (16 floats per instance)
-- `$instanceCount` — Number of instances to draw
+- `$matrices` – Flat array of `4x4` matrices (16 floats per instance)
+- `$instanceCount` – Number of instances to draw
 
 ```php
 $matrices = [];

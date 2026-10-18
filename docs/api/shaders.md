@@ -59,8 +59,8 @@ Create a render pipeline combining shader and render state.
 | `color_mask` | int | `VIO_COLOR_RGBA` | Colour channels written (`VIO_COLOR_R\|G\|B\|A`, `VIO_COLOR_RGB`) |
 | `depth_bias` | float | `0` | Constant depth bias (shadow acne) |
 | `slope_scaled_depth_bias` | float | `0` | Slope-scaled depth bias |
-| `hdr` | bool | `false` | Pipeline renders into an RGBA16F (`hdr`) target — needed for the D3D12 / Metal PSO format |
-| `attachments` | int[] | — | `VIO_FORMAT_*` per colour attachment when rendering into an MRT target (D3D12 PSO) |
+| `hdr` | bool | `false` | Pipeline renders into an RGBA16F (`hdr`) target – needed for the D3D12 / Metal PSO format |
+| `attachments` | int[] | – | `VIO_FORMAT_*` per colour attachment when rendering into an MRT target (D3D12 PSO) |
 
 ### Cull Mode Constants
 

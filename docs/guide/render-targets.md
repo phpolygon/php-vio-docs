@@ -83,7 +83,7 @@ while (!vio_should_close($ctx)) {
 
 ## Multiple Render Targets
 
-Up to four colour attachments in one pass — the classic G-buffer. Each attachment has its own format; the fragment shader writes `layout(location = i) out`:
+Up to four colour attachments in one pass – the classic G-buffer. Each attachment has its own format; the fragment shader writes `layout(location = i) out`:
 
 ```php
 $gbuffer = vio_render_target($ctx, [
@@ -118,8 +118,8 @@ $envCube = vio_render_target_cubemap($env);   // samplerCube, textureLod(dir, ro
 | | |
 |---|---|
 | ![MSAA render target](/gallery/msaa_render_target.png) | ![HDR tone mapping](/gallery/hdr_tonemap.png) |
-| `['samples' => 4]` — aliased (left) vs. resolved (right). Available on OpenGL, D3D11 and Metal; D3D12 reports `VIO_FEATURE_RENDER_TARGET_MSAA = 0`. | `['hdr' => true]` — values above 1.0 survive the target and are tone-mapped (ACES) in the resolve pass. |
+| `['samples' => 4]` – aliased (left) vs. resolved (right). Available on OpenGL, D3D11 and Metal; D3D12 reports `VIO_FEATURE_RENDER_TARGET_MSAA = 0`. | `['hdr' => true]` – values above 1.0 survive the target and are tone-mapped (ACES) in the resolve pass. |
 | ![Cube render target with mip chain](/gallery/cubemap_environment.png) | |
-| `['cube' => true, 'mipmaps' => true]` — six faces rendered, `vio_generate_mipmaps`, then `textureLod` by roughness on the spheres. | |
+| `['cube' => true, 'mipmaps' => true]` – six faces rendered, `vio_generate_mipmaps`, then `textureLod` by roughness on the spheres. | |
 
 Query [`vio_supports_feature()`](/api/backend#vio-supports-feature) with `VIO_FEATURE_RENDER_TARGET_MSAA`, `_HDR`, `_DEPTH` or `_CUBE` before relying on a variant. The [Feature Gallery](/guide/gallery) lists which backend renders which scene.

@@ -44,7 +44,7 @@ Returns an array of all registered backend names.
 
 ```php
 $backends = vio_backends();
-// macOS: ["metal", "vulkan", "opengl", "null"] — Windows: ["d3d12", "d3d11", "vulkan", "opengl", "null"]
+// macOS: ["metal", "vulkan", "opengl", "null"] – Windows: ["d3d12", "d3d11", "vulkan", "opengl", "null"]
 ```
 
 ## vio_gpu_info

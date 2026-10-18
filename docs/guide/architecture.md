@@ -4,7 +4,7 @@ php-vio uses a **vtable-based backend dispatch** pattern. All GPU operations are
 
 ## Backend Vtable
 
-The core of the system is `vio_backend` — a struct of ~20 function pointers defined in `include/vio_backend.h`:
+The core of the system is `vio_backend` – a struct of ~20 function pointers defined in `include/vio_backend.h`:
 
 ```
 vio_create("opengl"|"vulkan"|"metal"|"d3d11"|"d3d12"|"null"|"auto", [...])
@@ -30,11 +30,11 @@ When using `"auto"` (the default), the priority depends on the platform:
 | **Windows** | D3D12 > D3D11 > Vulkan > OpenGL > Null |
 | **Linux** | Vulkan > OpenGL > Null |
 
-The first available backend in the platform's priority order wins. On macOS, Vulkan via MoltenVK is supported but opt-in — you must request it explicitly with `vio_create("vulkan", ...)`.
+The first available backend in the platform's priority order wins. On macOS, Vulkan via MoltenVK is supported but opt-in – you must request it explicitly with `vio_create("vulkan", ...)`.
 
 ## Backend Registration
 
-Backends register themselves during `MINIT` (module initialization). Each backend calls `vio_register_backend()` with its name and vtable struct. This happens at extension load time — before any PHP code runs.
+Backends register themselves during `MINIT` (module initialization). Each backend calls `vio_register_backend()` with its name and vtable struct. This happens at extension load time – before any PHP code runs.
 
 ## Zend Object Model
 
@@ -72,7 +72,7 @@ Every optional feature is behind an `#ifdef` guard:
 #ifdef HAVE_SPIRV_CROSS // Shader reflection & transpilation
 ```
 
-This means the extension compiles cleanly even if you only have GLFW installed — unsupported features simply return `false`.
+This means the extension compiles cleanly even if you only have GLFW installed – unsupported features simply return `false`.
 
 ## Frame Lifecycle
 

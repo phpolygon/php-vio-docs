@@ -49,13 +49,13 @@ $shader = vio_shader($ctx, [
 
 Conventions that keep one source portable across all backends:
 
-- `#version 450` — the GLSL dialect glslang compiles to SPIR-V; php-vio then emits the backend's native language.
+- `#version 450` – the GLSL dialect glslang compiles to SPIR-V; php-vio then emits the backend's native language.
 - `layout(location = n)` on vertex inputs, on the varyings between stages and on fragment outputs (`location = i` selects the colour attachment with [multiple render targets](/api/render-targets)).
-- Uniforms either in a `layout(std140, binding = 0) uniform Block { … }` block or as plain `uniform mat4 u_mvp;` — both are written with [`vio_set_uniform()`](#setting-uniforms) by member name on every backend (php-vio 2.10.1+ on OpenGL). Binding 0 is the root constant buffer on Direct3D 12. Prefer the block form for large struct arrays (Metal packs them std140 only inside a block).
-- Samplers: bind the texture to a unit with `vio_bind_texture($ctx, $tex, n)` and tell the shader which unit with `vio_set_uniform($ctx, 'uTexture', n)` — the classic OpenGL convention, and the one D3D/Metal resolve at draw time. A `layout(binding = n)` qualifier is optional and does **not** select the unit on D3D/Metal; without a `vio_set_uniform()` call a sampler reads unit 0. One unit holds one sampler (2D, 3D or cube).
+- Uniforms either in a `layout(std140, binding = 0) uniform Block { … }` block or as plain `uniform mat4 u_mvp;` – both are written with [`vio_set_uniform()`](#setting-uniforms) by member name on every backend (php-vio 2.10.1+ on OpenGL). Binding 0 is the root constant buffer on Direct3D 12. Prefer the block form for large struct arrays (Metal packs them std140 only inside a block).
+- Samplers: bind the texture to a unit with `vio_bind_texture($ctx, $tex, n)` and tell the shader which unit with `vio_set_uniform($ctx, 'uTexture', n)` – the classic OpenGL convention, and the one D3D/Metal resolve at draw time. A `layout(binding = n)` qualifier is optional and does **not** select the unit on D3D/Metal; without a `vio_set_uniform()` call a sampler reads unit 0. One unit holds one sampler (2D, 3D or cube).
 - Compute shaders declare `layout(local_size_x = …)`; their params block lives at `binding = 2` (see [Compute](/api/compute)).
 
-Missing `location` / `binding` qualifiers are auto-assigned by glslang, so older `#version 330 core` sources compile too — but explicit numbers are what make the reflection, `vio_bind_texture()` slots and MRT outputs predictable.
+Missing `location` / `binding` qualifiers are auto-assigned by glslang, so older `#version 330 core` sources compile too – but explicit numbers are what make the reflection, `vio_bind_texture()` slots and MRT outputs predictable.
 
 Feeding that shader from PHP:
 
@@ -140,7 +140,7 @@ Reflection requires `--with-spirv-cross` at build time.
 
 ## Setting Uniforms
 
-`vio_set_uniform()` writes a value by name — plain uniforms and members of `uniform Block { … }` blocks alike, in any stage. Arrays are set per element (`uBones[3]`, `u_lights[2].pos`); a `mat4` is 16 floats, column-major.
+`vio_set_uniform()` writes a value by name – plain uniforms and members of `uniform Block { … }` blocks alike, in any stage. Arrays are set per element (`uBones[3]`, `u_lights[2].pos`); a `mat4` is 16 floats, column-major.
 
 ```php
 vio_set_uniform($ctx, "uColor", [1.0, 0.0, 0.0, 1.0]);  // vec4
@@ -161,14 +161,14 @@ Values are staged and pushed right before the draw, so the order of `vio_set_uni
 
 php-vio includes built-in shaders for the 2D renderer and a default 3D shader. These are compiled into the extension and used automatically when no custom shader is specified.
 
-- `shaders/default_shaders.h` — Default 3D vertex/fragment shader
-- `shaders/shaders_2d.h` — 2D batch renderer shader
+- `shaders/default_shaders.h` – Default 3D vertex/fragment shader
+- `shaders/shaders_2d.h` – 2D batch renderer shader
 
 ## Tips
 
-- Use `layout(std140)` for uniform blocks — it guarantees consistent memory layout across backends
+- Use `layout(std140)` for uniform blocks – it guarantees consistent memory layout across backends
 - Avoid `push_constant` (Vulkan-specific) if you want cross-backend shaders
-- Use `binding` / `location` qualifiers explicitly — don't rely on auto-assignment
-- Render-target textures are row 0 = bottom on OpenGL and row 0 = top on D3D/Metal — flip V when sampling an offscreen target on those backends (see [Render Targets → Orientation](/api/render-targets#orientation))
-- A shader can bind up to **8** regular texture samplers (2D, 3D, cubemap) in addition to the dedicated shadow/depth samplers — keep within that budget for cross-backend portability
+- Use `binding` / `location` qualifiers explicitly – don't rely on auto-assignment
+- Render-target textures are row 0 = bottom on OpenGL and row 0 = top on D3D/Metal – flip V when sampling an offscreen target on those backends (see [Render Targets → Orientation](/api/render-targets#orientation))
+- A shader can bind up to **8** regular texture samplers (2D, 3D, cubemap) in addition to the dedicated shadow/depth samplers – keep within that budget for cross-backend portability
 - Test with `vio_shader_reflect()` to verify your shader's interface matches your vertex data

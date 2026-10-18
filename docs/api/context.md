@@ -25,12 +25,12 @@ VioContext|false vio_create(string $backend = "auto", array $options = [])
 | `height` | int | `600` | Window height in screen coordinates |
 | `title` | string | `"vio"` | Window title |
 | `vsync` | bool | `true` | Vertical sync. `false` removes any frame cap (D3D FLIP_DISCARD + tearing flag, Vulkan IMMEDIATE/MAILBOX) |
-| `samples` | int | `0` | Swapchain MSAA sample count (OpenGL via GLFW hint, Metal via resolve; D3D/Vulkan ignore it — use render targets) |
+| `samples` | int | `0` | Swapchain MSAA sample count (OpenGL via GLFW hint, Metal via resolve; D3D/Vulkan ignore it – use render targets) |
 | `debug` | bool | `false` | Validation / debug layers (D3D debug layer, Vulkan validation, Metal API validation, GL debug output) |
 | `headless` | bool | `false` | Offscreen context without a visible window; the framebuffer is exactly `width × height` on every backend |
-| `frame_count` | int | `2` | **D3D12 only:** frames in flight (2–3). 3 raises throughput but shrinks the per-frame descriptor/constant heaps — opt in only with headroom |
+| `frame_count` | int | `2` | **D3D12 only:** frames in flight (2–3). 3 raises throughput but shrinks the per-frame descriptor/constant heaps – opt in only with headroom |
 
-When `$backend` is `"auto"`, the best available backend is selected for the platform — Metal > OpenGL on macOS, D3D12 > D3D11 > Vulkan > OpenGL on Windows, Vulkan > OpenGL on Linux — **skipping backends that report no 3D pipeline** when a later candidate has one. Because Vulkan is 2D/compute-only today, Linux resolves to OpenGL. `"null"` is never chosen automatically. See the [Backends guide](/guide/backends) for details.
+When `$backend` is `"auto"`, the best available backend is selected for the platform – Metal > OpenGL on macOS, D3D12 > D3D11 > Vulkan > OpenGL on Windows, Vulkan > OpenGL on Linux – **skipping backends that report no 3D pipeline** when a later candidate has one. Because Vulkan is 2D/compute-only today, Linux resolves to OpenGL. `"null"` is never chosen automatically. See the [Backends guide](/guide/backends) for details.
 
 **Returns:** `VioContext` on success, `false` on failure.
 
@@ -68,6 +68,28 @@ End the current frame and present to screen.
 ```php
 void vio_end(VioContext $context)
 ```
+
+## vio_gpu_flush
+
+Block until the GPU has finished all submitted work.
+
+```php
+void vio_gpu_flush(VioContext $context)
+```
+
+Meant for benchmarks and tests that time a frame on the CPU side, or that must be sure the GPU is
+idle before they read something back or tear resources down. Call it after `vio_end()`; it is not
+needed in a normal frame loop and costs the CPU–GPU overlap.
+
+| Backend | What it waits for |
+|---|---|
+| OpenGL | `glFinish()` |
+| D3D11 | an event query after a flush (plain `Flush()` if the query cannot be created) |
+| D3D12 | the queue fence (all frames in flight) |
+| Metal | the last presented command buffer (`waitUntilCompleted`) |
+| Vulkan, `null` | nothing – the call returns at once |
+
+Warns when the context is not initialized.
 
 ## vio_clear
 

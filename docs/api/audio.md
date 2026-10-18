@@ -222,5 +222,5 @@ void vio_audio_listener(float $x, float $y, float $z, float $fx, float $fy, floa
 
 Set the listener position and forward direction for 3D audio.
 
-- `($x, $y, $z)` — Listener position in world space
-- `($fx, $fy, $fz)` — Forward direction vector
+- `($x, $y, $z)` – Listener position in world space
+- `($fx, $fy, $fz)` – Forward direction vector

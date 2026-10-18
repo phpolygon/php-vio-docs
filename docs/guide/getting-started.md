@@ -92,7 +92,7 @@ All features are optional. A minimal build with just OpenGL windowing:
 phpize && ./configure --enable-vio --with-glfw && make
 ```
 
-Features not compiled in are simply unavailable at runtime — no errors, just `false` returns from unsupported functions.
+Features not compiled in are simply unavailable at runtime – no errors, just `false` returns from unsupported functions.
 
 ## Your First Window
 
@@ -199,7 +199,7 @@ while (!vio_should_close($ctx)) {
 vio_destroy($ctx);
 ```
 
-The shaders are `#version 450` GLSL with explicit `layout(location = …)` qualifiers: php-vio compiles them to SPIR-V and cross-compiles to whatever the backend speaks (GLSL, HLSL, MSL), so the same source runs on OpenGL, Direct3D and Metal — swap `"opengl"` for `"auto"` and nothing else changes. See the [Shaders guide](/guide/shaders).
+The shaders are `#version 450` GLSL with explicit `layout(location = …)` qualifiers: php-vio compiles them to SPIR-V and cross-compiles to whatever the backend speaks (GLSL, HLSL, MSL), so the same source runs on OpenGL, Direct3D and Metal – swap `"opengl"` for `"auto"` and nothing else changes. See the [Shaders guide](/guide/shaders).
 
 ## Playing Audio
 
@@ -226,7 +226,7 @@ NO_INTERACTION=1 TEST_PHP_EXECUTABLE=$(which php) \
 
 ## Next Steps
 
-- [Architecture](/guide/architecture) — How the backend dispatch works
-- [Backends](/guide/backends) — OpenGL, Vulkan, Metal, D3D details
-- [2D Rendering](/guide/rendering-2d) — Sprites, shapes, text
-- [3D Rendering](/guide/rendering-3d) — Meshes, shaders, pipelines
+- [Architecture](/guide/architecture) – How the backend dispatch works
+- [Backends](/guide/backends) – OpenGL, Vulkan, Metal, D3D details
+- [2D Rendering](/guide/rendering-2d) – Sprites, shapes, text
+- [3D Rendering](/guide/rendering-3d) – Meshes, shaders, pipelines
