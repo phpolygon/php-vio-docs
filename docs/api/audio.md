@@ -23,6 +23,9 @@ Start the audio engine explicitly – before the first sound; otherwise `vio_aud
 | Option | Type | Description |
 |---|---|---|
 | `backends` | list&lt;string&gt; | miniaudio backends to try in order: `wasapi`, `dsound`, `winmm`, `coreaudio`, `sndio`, `audio4`, `oss`, `pulseaudio`, `alsa`, `jack`, `aaudio`, `opensl`, `webaudio`, `null` |
+| `device` | bool | `false` starts an **offline engine** without any device: the mix only advances through [`vio_audio_render()`](#vio-audio-render) (since v2.36). Excludes `backends`. |
+| `sample_rate` | int | Offline engine only: 8000–384000 (default 44100) |
+| `channels` | int | Offline engine only: 1–8 (default 2) |
 
 `null` is a device without hardware: it pulls audio on its own real-time clock, so loading, decoding, resampling and mixing run exactly as with a sound card – for headless servers and CI runners without one.
 
@@ -40,7 +43,7 @@ vio_audio_init(['backends' => ['null']]);
 string|false vio_audio_backend()
 ```
 
-The backend the engine plays through (`wasapi`, `coreaudio`, `pulseaudio`, `alsa`, `null`, …), `false` before the engine is started.
+The backend the engine plays through (`wasapi`, `coreaudio`, `pulseaudio`, `alsa`, `null`, …), `offline` for an engine started with `['device' => false]`, `false` before the engine is started.
 
 ## vio_audio_backends
 
@@ -165,6 +168,14 @@ Start playing a sound.
 | `loop` | bool | `false` | Loop playback |
 | `pan` | float | `0.0` | Stereo pan (-1.0 left, 0.0 center, 1.0 right) |
 | `pitch` | float | `1.0` | Playback speed multiplier |
+| `spatial` | bool | `true` | `false` = plain 2D sound: the listener neither attenuates nor pans it (music, UI, voice-over) |
+| `relative` | bool | `false` | Position is relative to the listener |
+| `position` / `velocity` / `direction` | [x, y, z] | – | As [`vio_audio_position()`](#vio-audio-position), [`vio_audio_velocity()`](#vio-audio-velocity-vio-audio-doppler), [`vio_audio_direction()`](#vio-audio-direction-vio-audio-cone); a list or `x`/`y`/`z` keys |
+| `doppler` | float | `1.0` | Doppler factor |
+| `attenuation` | string | `'inverse'` | `none`, `inverse`, `linear`, `exponential` |
+| `min_distance`, `max_distance`, `rolloff`, `min_gain`, `max_gain` | float | 1, ∞, 1, 0, 1 | See [`vio_audio_attenuation()`](#vio-audio-attenuation) |
+
+The spatial options (since v2.36) are validated before anything changes: an invalid one throws `ValueError`/`TypeError` and the sound neither changes nor starts.
 
 ## vio_audio_stop
 
@@ -217,10 +228,127 @@ Set the 3D position of a sound source for spatial audio.
 ## vio_audio_listener
 
 ```php
-void vio_audio_listener(float $x, float $y, float $z, float $fx, float $fy, float $fz)
+void vio_audio_listener(float $x, float $y, float $z, float $forward_x, float $forward_y, float $forward_z,
+                        ?float $up_x = null, ?float $up_y = null, ?float $up_z = null)
 ```
 
 Set the listener position and forward direction for 3D audio.
 
 - `($x, $y, $z)` – Listener position in world space
-- `($fx, $fy, $fz)` – Forward direction vector
+- `($forward_x, $forward_y, $forward_z)` – Forward direction vector
+- `($up_x, $up_y, $up_z)` – optional up vector (since v2.36, default +Y). Give all three or none; without them the current up vector stays. A zero vector or a partial one throws `ValueError`.
+
+Warns when the audio engine has not started yet (load a sound or call `vio_audio_init()` first).
+
+## Live sound parameters
+
+Since v2.36 every parameter can change while the sound plays. All of them ignore a `VioSound` that never loaded.
+
+### vio_audio_pitch
+
+```php
+void vio_audio_pitch(VioSound $sound, float $pitch)
+```
+
+Playback speed/pitch (1.0 = original, 2.0 = one octave up). Must be finite and > 0 (`ValueError` otherwise).
+
+### vio_audio_pan
+
+```php
+void vio_audio_pan(VioSound $sound, float $pan)
+```
+
+Stereo pan, −1.0 (left) to 1.0 (right), clamped. Applied after spatialization.
+
+### vio_audio_spatial
+
+```php
+void vio_audio_spatial(VioSound $sound, bool $enabled, ?bool $relative = null)
+```
+
+Switch 3D spatialization on or off. Off = plain 2D sound: the listener neither attenuates nor pans it, wherever it is – so music and UI sounds stay untouched while the listener follows the camera. `$relative = true` positions the sound relative to the listener (it moves with it); `null` keeps the current setting.
+
+### vio_audio_attenuation
+
+```php
+void vio_audio_attenuation(VioSound $sound, string $model, ?float $min_distance = null, ?float $max_distance = null,
+                           ?float $rolloff = null, ?float $min_gain = null, ?float $max_gain = null)
+```
+
+Distance attenuation (OpenAL clamped models). Arguments left `null` keep their value.
+
+| Model | Gain at distance d (clamped to min…max distance) |
+|---|---|
+| `none` | 1 (no attenuation, no spatial panning) |
+| `inverse` (default) | min / (min + rolloff · (d − min)) |
+| `linear` | 1 − rolloff · (d − min) / (max − min) |
+| `exponential` | (d / min)^−rolloff |
+
+The gain is then clamped to `min_gain`…`max_gain`. Defaults: `min_distance` 1, `max_distance` `INF`, `rolloff` 1, `min_gain` 0, `max_gain` 1. An unknown model, a negative value or `max < min` throws `ValueError` and changes nothing.
+
+### vio_audio_velocity / vio_audio_doppler
+
+```php
+void vio_audio_velocity(VioSound $sound, float $x, float $y, float $z)
+void vio_audio_doppler(VioSound $sound, float $factor)
+```
+
+Source velocity in world units per second and the Doppler factor (0 = off, 1 = physical, default 1). The pitch shift follows OpenAL: (c − f·v<sub>listener</sub>) / (c − f·v<sub>source</sub>), velocities projected onto the line between them.
+
+### vio_audio_direction / vio_audio_cone
+
+```php
+void vio_audio_direction(VioSound $sound, float $x, float $y, float $z)
+void vio_audio_cone(VioSound $sound, float $inner_angle, float $outer_angle, float $outer_gain)
+```
+
+Directional source: full volume inside `$inner_angle`, `$outer_gain` outside `$outer_angle`, interpolated between. Angles in radians (0…2π, outer ≥ inner), gain 0…1.
+
+### vio_audio_state
+
+```php
+array vio_audio_state(VioSound $sound)
+```
+
+Current parameters: `loaded`, `playing`, `looping`, `volume`, `pitch`, `pan`, `spatial`, `relative`, `position`, `velocity`, `direction` (each `[x, y, z]`), `doppler`, `attenuation`, `min_distance`, `max_distance` (`INF` when unlimited), `rolloff`, `min_gain`, `max_gain`, `cone` (`inner_angle`, `outer_angle`, `outer_gain`), `cursor` and `length` (seconds). A sound that never loaded gives `['loaded' => false]`.
+
+## Listener
+
+### vio_audio_listener_velocity
+
+```php
+void vio_audio_listener_velocity(float $x, float $y, float $z)
+```
+
+Listener velocity in world units per second (Doppler).
+
+### vio_audio_speed_of_sound
+
+```php
+void vio_audio_speed_of_sound(float $speed)
+```
+
+Speed of sound for the Doppler effect in world units per second (default 343.3 – metres). Scale it when a world unit is not a metre.
+
+### vio_audio_listener_state
+
+```php
+array|false vio_audio_listener_state()
+```
+
+`position`, `direction`, `up`, `velocity` (each `[x, y, z]`), `speed_of_sound`, `sample_rate`, `channels` – or `false` before the engine started.
+
+## vio_audio_render
+
+```php
+string|false vio_audio_render(int $frames)
+```
+
+Mix the next `$frames` frames of an offline engine (`vio_audio_init(['device' => false])`) and return them as interleaved 32-bit float PCM (`unpack('g*', …)`). The mix advances only through this call, so it is deterministic – for audio tests and offline rendering. Returns `false` with a warning on a device engine. 0…2 880 000 frames per call.
+
+```php
+vio_audio_init(['device' => false]);
+$s = vio_audio_load('engine.wav');
+vio_audio_play($s, ['loop' => true, 'position' => [0, 0, -10]]);
+$pcm = unpack('g*', vio_audio_render(44100));   // one second, L R L R …
+```
