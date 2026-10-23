@@ -48,6 +48,12 @@ $color = pack("f4", 1.0, 0.0, 0.0, 1.0);
 vio_update_buffer($buf, $color, 64);  // Write at byte 64
 ```
 
+Calling it every frame is cheap on every backend: Vulkan and Metal write host-visible memory directly, D3D12 (since v2.36.1) stages the bytes in a persistently mapped upload ring and copies them in one batch per frame instead of creating and submitting a staging buffer per call (RTX 2080: ~0.45 ms → ~3 µs per call). The new contents are visible to every draw and dispatch submitted after the call; several updates of one buffer land in call order.
+
+::: tip
+On Vulkan and Metal the write lands immediately. Do not rewrite a buffer that an earlier, still in-flight frame reads – use one buffer per frame in flight (or per frame) for data that changes every frame.
+:::
+
 ## vio_bind_buffer
 
 
