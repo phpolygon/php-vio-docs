@@ -96,6 +96,56 @@ vio_audio_position($sound, 10.0, 0.0, -5.0);
 
 The audio engine automatically computes volume attenuation and stereo panning based on the distance and direction between the listener and the sound source.
 
+### 2D and 3D sounds side by side
+
+Every sound is spatialized by default. Music, UI clicks and voice-over should not be – switch them to 2D, then the listener can follow the camera without touching them (since v2.36):
+
+```php
+vio_audio_play($music, ['loop' => true, 'spatial' => false]);   // 2D: never attenuated or panned
+vio_audio_play($engine, ['loop' => true, 'position' => [12, 0, -4], 'attenuation' => 'inverse',
+                         'min_distance' => 2, 'max_distance' => 80]);
+
+// each frame: listener = camera
+vio_audio_listener($cam->x, $cam->y, $cam->z, $fwd->x, $fwd->y, $fwd->z, $up->x, $up->y, $up->z);
+vio_audio_position($engine, $car->x, $car->y, $car->z);
+```
+
+`vio_audio_spatial($sound, false)` does the same for a sound that already plays; `vio_audio_spatial($sound, true, true)` places it relative to the listener (a sound that sits on the player's shoulder).
+
+### Distance attenuation
+
+`vio_audio_attenuation($sound, $model, …)` picks the OpenAL-style model (`none`, `inverse`, `linear`, `exponential`) with `min_distance`, `max_distance`, `rolloff` and a gain range. Arguments left `null` keep their value:
+
+```php
+vio_audio_attenuation($waterfall, 'linear', min_distance: 5, max_distance: 60);  // silent beyond 60 units
+```
+
+### Doppler
+
+Give sources and the listener a velocity (world units per second) – the pitch follows:
+
+```php
+vio_audio_velocity($car, $vel->x, $vel->y, $vel->z);
+vio_audio_listener_velocity($player->vx, $player->vy, $player->vz);
+vio_audio_speed_of_sound(343.3);     // scale if a world unit is not a metre
+vio_audio_doppler($ui, 0.0);         // per sound: 0 = off
+```
+
+### Live pitch and pan
+
+`vio_audio_pitch($sound, 1.2)` and `vio_audio_pan($sound, -0.5)` change a playing sound – an engine that revs, a sound that drifts between speakers. `vio_audio_state($sound)` and `vio_audio_listener_state()` read everything back.
+
+## Offline rendering and tests
+
+`vio_audio_init(['device' => false])` starts an engine without any device; `vio_audio_render($frames)` mixes the next frames and returns interleaved float PCM. Nothing runs in the background, so the result is the same on every machine – for audio regression tests or rendering a mix to a file:
+
+```php
+vio_audio_init(['device' => false, 'sample_rate' => 48000]);
+$s = vio_audio_load('siren.ogg');
+vio_audio_play($s, ['position' => [0, 0, -50], 'velocity' => [0, 0, 100]]);  // approaching: pitched up
+$pcm = unpack('g*', vio_audio_render(48000));
+```
+
 ## Lazy Initialization
 
 The miniaudio engine is initialized on the first call to `vio_audio_load()`. If your application doesn't use audio, no audio resources are allocated.
