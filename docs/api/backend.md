@@ -106,7 +106,7 @@ The API level the backend negotiated and what the device can do there. `false` w
 | `shading_language_version` | Version in use, `major * 10 + minor` |
 | `shading_language_max` | Highest version the OS / driver accepts |
 | `families` | Metal GPU families (`'apple7'`, `'mac2'`, `'metal3'`, …) |
-| `caps` | `array<string, bool>`: device support **and** the minimum language version |
+| `caps` | `array<string, bool>`: device support **and** the minimum language version. D3D12 adds `async_commands`, `fence_barriers` and `dump_file`, which need Agility SDK 1.620 or later |
 | `vendor_id`, `vendor` | PCI vendor (`0x10005` = Mesa, `0` = unknown) and its name |
 | `driver` | Driver version |
 | `device_type` | `'discrete'`, `'integrated'`, `'software'` or `'unknown'` |

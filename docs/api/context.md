@@ -28,6 +28,7 @@ VioContext|false vio_create(string $backend = "auto", array $options = [])
 | `samples` | int | `0` | Swapchain MSAA sample count (OpenGL via GLFW hint, Metal via resolve; D3D/Vulkan ignore it – use render targets) |
 | `debug` | bool | `false` | Validation / debug layers (D3D debug layer, Vulkan validation, Metal API validation, GL debug output) |
 | `headless` | bool | `false` | Offscreen context without a visible window; the framebuffer is exactly `width × height` on every backend |
+| `hdr_composite` | bool | `false` | **D3D12 only**, with an active HDR10 swapchain: draws to the screen blend in an SDR layer and `vio_end()` PQ-encodes it once, so alpha blends in display light instead of on PQ values. `vio_swapchain_info()['hdr_composite']` reports it |
 | `frame_count` | int | `2` | **D3D12 only:** frames in flight (2–3). 3 raises throughput but shrinks the per-frame descriptor/constant heaps – opt in only with headroom |
 
 When `$backend` is `"auto"`, the best available backend is selected for the platform – Metal > OpenGL on macOS, D3D12 > D3D11 > Vulkan > OpenGL on Windows, Vulkan > OpenGL on Linux – **skipping backends that report no 3D pipeline** when a later candidate has one. Because Vulkan is 2D/compute-only today, Linux resolves to OpenGL. `"null"` is never chosen automatically. See the [Backends guide](/guide/backends) for details.

@@ -11,8 +11,9 @@ php -d extension=vio examples/gallery.php d3d11      # pick a backend
 php -d extension=vio examples/gallery.php opengl out/ shadow_map,hdr_tonemap
 ```
 
-The scenes below were captured on Direct3D 12 (the MSAA scene on Direct3D 11); the same
-script produces the same pictures on OpenGL and Metal.
+The scenes below were captured on Direct3D 12; the same script produces the same pictures on the
+other backends. The [ray tracing](#ray-tracing) scenes need a GPU and are skipped where the feature is
+missing.
 
 ## 2D
 
@@ -50,15 +51,23 @@ script produces the same pictures on OpenGL and Metal.
 | ![Compute storage image](/gallery/compute_storage_image.png) | ![Compute vertex storage](/gallery/compute_vertex_storage.png) |
 | **Storage image** – compute shader writes an `image2D` (`['storage' => true]`), the render pass samples it. | **Vertex-stage storage buffer** – compute writes instance matrices, the vertex shader reads them via `gl_InstanceIndex`; no readback. [API](/api/buffers) |
 
+## Ray tracing
+
+| | |
+|---|---|
+| ![Ray query shadows](/gallery/ray_query_shadows.png) | ![Opacity micromaps](/gallery/opacity_micromap.png) |
+| **Ray query** – [`vio_acceleration_structure()`](/api/ray-tracing#vio-acceleration-structure) and `rayQueryEXT`: one shadow ray per pixel from the fragment shader. | **Opacity micromaps** – [`vio_opacity_micromap_bake()`](/api/ray-tracing#vio-opacity-micromap-bake) turns an alpha texture into micro-triangle states, read back with rays. Unknown states still run the any-hit shader. |
+
 ## Backend coverage
 
 | Scene | OpenGL | D3D11 | D3D12 | Metal | Vulkan |
 |---|---|---|---|---|---|
 | 2D shapes / sprites / text | ✅ | ✅ | ✅ | ✅ | ✅ |
-| 3D meshes, instancing, samplers, anisotropy, 3D texture | ✅ | ✅ | ✅ | ✅ | – |
-| Post-process, shadow map, MRT, cube RT, HDR | ✅ | ✅ | ✅ | ✅ | – |
-| MSAA render target | ✅ | ✅ | – | ✅ | – |
-| Compute storage image, vertex storage | ✅ (GL ≥ 4.3) | ✅ | ✅ | ✅ | – |
+| 3D meshes, instancing, samplers, anisotropy, 3D texture | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Post-process, shadow map, MRT, cube RT, HDR | ✅ | ✅ | ✅ | ✅ | ✅ |
+| MSAA render target | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Compute storage image, vertex storage | ✅ (GL ≥ 4.3) | ✅ | ✅ | ✅ | ✅ |
+| Ray query shadows | – | – | ✅ | not run | ✅ |
+| Opacity micromaps | – | – | ✅ | – | ✅ |
 
-Vulkan currently has no 3D pipeline (`VIO_FEATURE_3D_PIPELINE == 0`); query
-[`vio_supports_feature()`](/api/backend#vio-supports-feature) before relying on a path.
+Query [`vio_supports_feature()`](/api/backend#vio-supports-feature) before relying on a path.
