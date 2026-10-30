@@ -1,9 +1,44 @@
 # What's New
 
-This documentation describes **php-vio v2.35.0** (2026-10-18). The full commit-level history is in
+This documentation describes **php-vio v2.38.1** (2026-10-30). The full commit-level history is in
 [`CHANGELOG.md`](https://github.com/phpolygon/php-vio/blob/main/CHANGELOG.md); every release ships
 binaries for Linux x86_64/arm64, macOS x86_64/arm64 and Windows x64 (ts + nts) on the
 [Releases](https://github.com/phpolygon/php-vio/releases) page.
+
+## 2.38.1
+
+- **Objects released inside a frame** – a render target, texture, cubemap, buffer or compute pipeline that
+  loses its last PHP reference while the frame still uses it no longer takes the device down on D3D12. A
+  texture or cubemap from [`vio_render_target_texture()`](/api/render-targets#vio-render-target-texture)
+  now keeps its target alive, on every backend. Vulkan returns to the swapchain when the bound target
+  is destroyed.
+
+## 2.38.0
+
+- **Opacity micromap baker** – [`vio_opacity_micromap_bake()`](/api/ray-tracing#vio-opacity-micromap-bake)
+  turns an alpha texture and uvs into a map for `'opacity_micromap'`, without a GPU. At subdivision 6
+  rays through 40 stacked leaf cards skip 90 % of the any-hit calls on an RTX 2080.
+- **Agility SDK 1.620** – php-vio builds against its headers and uses them only where the runtime has
+  them. [`vio_backend_info()`](/api/backend#vio-backend-info) reports the caps `async_commands`,
+  `fence_barriers` and `dump_file`; the device-removed report names the driver's error code; feature
+  queries go through `CheckFeatureSupport1`. Ray queries below Shader Model 6.9 opt into micromaps.
+
+## 2.37.0
+
+- **HDR composite** – [`vio_create(['hdr_composite' => true])`](/api/context) on D3D12: with an active
+  HDR10 swapchain, draws to the screen blend in an SDR layer and `vio_end()` PQ-encodes once, so 50 %
+  white over black no longer blends on PQ values.
+
+## 2.36.1
+
+- **Faster `vio_update_buffer()` on D3D12** – buffer updates go through an upload ring and one batch per
+  frame instead of a committed buffer and a command list per call: 8 × 4 KiB per frame fell from
+  2.9–3.9 ms to 0.02 ms on an RTX 2080.
+
+## 2.36.0
+
+- **Live spatial audio** – pitch and pan while a sound plays, 2D/3D switch, attenuation models, Doppler,
+  cones, a listener up vector and an offline render ([Audio](/api/audio)).
 
 ## 2.35.0
 

@@ -15,8 +15,10 @@ Two levels of hardware ray tracing:
 | OpenGL, D3D11 | ❌ | ❌ |
 
 Where a flag is 0 the functions return `false` with a warning. Shader execution reordering
-(`VIO_FEATURE_SHADER_EXECUTION_REORDER`) and opacity micromaps (`VIO_FEATURE_OPACITY_MICROMAP`) are
-available on D3D12 (DXR 1.2) and Vulkan.
+(`VIO_FEATURE_SHADER_EXECUTION_REORDER`) and [opacity micromaps](#opacity-micromaps)
+(`VIO_FEATURE_OPACITY_MICROMAP`) are available on D3D12 (DXR 1.2) and Vulkan.
+
+![Hard shadows traced with a ray query from the fragment shader](/gallery/ray_query_shadows.png)
 
 ## vio_acceleration_structure
 
@@ -33,6 +35,7 @@ indices) and a top-level structure over the instances. Each instance:
 | `transform` | `float[16]` | identity | Column-major 4 × 4 matrix |
 | `hit_group` | int | 0 | 0–7: hit group of the RT pipeline |
 | `mask` | int | `0xFF` | 0–255: rays skip the instance when `mask & cullMask` is 0 |
+| `opacity_micromap` | array | none | Map of the mesh, see [Opacity micromaps](#opacity-micromaps). A mesh carries one map |
 
 ```php
 $occluder = vio_mesh($ctx, ['vertices' => [-1,-1,0.5, 0,-1,0.5, 0,1,0.5, -1,1,0.5],
@@ -42,6 +45,88 @@ $tlas = vio_acceleration_structure($ctx, [
     ['mesh' => $occluder, 'transform' => [1,0,0,0, 0,1,0,0, 0,0,1,0, 1,0,0,1]],   // moved +1 in x
 ]);
 ```
+
+## Opacity micromaps
+
+Rays through alpha-tested geometry (leaves, fences, grates) normally run an any-hit shader for every
+triangle they touch, only to read a texture and learn that the ray passes through. An opacity micromap
+stores the answer per **micro-triangle** in the acceleration structure, so the hardware decides during
+traversal. Only what the map cannot decide still runs the shader.
+
+Micromaps speed up ray tracing through alpha-tested geometry. Ray tracing itself does not need them,
+and opaque geometry gains nothing from them.
+
+Each triangle splits into 4^`subdivision` micro-triangles. A state is one byte:
+
+| State | Meaning | With format 2 | With format 4 |
+|---|---|---|---|
+| 0 | Transparent | ray passes | ray passes |
+| 1 | Opaque | ray hits, no any-hit | ray hits, no any-hit |
+| 2 | Unknown, leans transparent | – | any-hit decides |
+| 3 | Unknown, leans opaque | – | any-hit decides |
+
+The geometry of a mesh with a map becomes non-opaque. `RAY_FLAG_FORCE_OMM_2_STATE` /
+`gl_RayFlagsForceOpacityMicromap2StateEXT` resolves the unknown states without an any-hit shader.
+
+### vio_opacity_micromap_bake
+
+```php
+array vio_opacity_micromap_bake(array $options)
+```
+
+Bake a map from an alpha texture. It needs no GPU and no context, so it can run in a build step.
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `uvs` | `float[]` | required | `u, v` per vertex |
+| `indices` | `int[]` | `0, 1, 2, …` | The mesh's indices |
+| `data` | string | required | `width × height × channels` bytes |
+| `width`, `height` | int | required | 1–65536 |
+| `channels` | int | 4 | 1 or 4; the last channel holds alpha |
+| `subdivision` | int | 4 | 0–12 |
+| `format` | int | 4 | 4: exact image, unknown states run the any-hit shader. 2: no any-hit needed, edges as coarse as the subdivision |
+| `threshold` | float | 0.5 | Alpha at or above this is opaque |
+| `clamp` | bool | `false` | `false`: uvs repeat |
+
+Returns `['subdivision', 'format', 'states', 'stats']`, which goes straight into
+`'opacity_micromap'`. `stats` counts `transparent`, `opaque`, `unknown_transparent` and
+`unknown_opaque`. Malformed input and more than 256 MiB of states throw a `ValueError`.
+
+```php
+$map = vio_opacity_micromap_bake([
+    'uvs' => [0,0, 1,0, 1,1, 0,1], 'indices' => [0,1,2, 0,2,3],
+    'data' => $rgba, 'width' => 256, 'height' => 256,
+    'subdivision' => 6, 'format' => 4,
+]);
+$tlas = vio_acceleration_structure($ctx, [['mesh' => $leaf, 'opacity_micromap' => $map]]);
+```
+
+![A leaf at subdivision 3, 5 and 7: the unknown share falls from 72 to 16 percent](/gallery/opacity_micromap.png)
+
+Format 4 calls a micro-triangle known only if every texel a bilinear lookup inside it can reach lies
+on one side of the threshold, so a known state is never wrong. Fine detail needs a higher subdivision:
+a coarse map finds nothing it can decide.
+
+Measured on an RTX 2080 with 80 leaf cards, 40 crossed per ray, a 256 × 256 mask and a trivial any-hit
+shader:
+
+| Subdivision | Any-hit calls saved | Bake time | Packed size |
+|---|---|---|---|
+| 2 | 0 % | 8 ms | under 1 KiB |
+| 4 | 67 % | 52 ms | 5 KiB |
+| 6 | 90 % | 87 ms | 80 KiB |
+| 8 | 96 % | 370 ms | 1280 KiB |
+
+Bake at load time or in a build step, not per frame.
+
+::: warning Limits
+- The baker reads mip 0 only, so the any-hit shader must not sample lower mips.
+- Inline ray queries have no any-hit stage. Unknown states are candidates the shader resolves itself,
+  so format 2 is the simple choice there.
+- D3D12 needs DXR 1.2, which an RTX 2080 reports with the [Agility SDK](/api/backend). Below Shader
+  Model 6.9 a ray query cannot declare micromap support in HLSL; on Agility 1.620 and later php-vio opts
+  the pipeline in. Metal, OpenGL and D3D11 have no micromaps.
+:::
 
 ## vio_acceleration_structure_update
 
