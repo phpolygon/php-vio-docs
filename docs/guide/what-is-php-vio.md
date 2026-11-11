@@ -8,15 +8,16 @@ PHP has mature tooling for web applications, but lacks native access to GPUs, au
 
 | Capability | Powered by |
 |---|---|
-| Windowing & Input | [GLFW 3.4](https://www.glfw.org/) |
-| OpenGL Rendering | [GLAD](https://glad.dav1d.de/) (OpenGL 4.1 Core) |
+| Windowing & Input | php-vio's own Win32, Cocoa, X11 and Wayland layers; optionally [GLFW 3.4](https://www.glfw.org/) |
+| OpenGL Rendering | [GLAD](https://glad.dav1d.de/) (OpenGL 3.0–4.6) |
 | Vulkan Rendering | [Vulkan SDK](https://vulkan.lunarg.com/) + [VMA](https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator) |
 | Metal Rendering | Apple Metal Framework (macOS) |
+| Direct3D Rendering | Direct3D 11 and 12 (Windows SDK) |
 | Shader Compilation | [glslang](https://github.com/KhronosGroup/glslang) (GLSL → SPIR-V) |
 | Shader Reflection | [SPIRV-Cross](https://github.com/KhronosGroup/SPIRV-Cross) |
 | Audio | [miniaudio](https://miniaud.io/) |
 | Video / Streaming | [FFmpeg](https://ffmpeg.org/) (libavcodec, libavformat) |
-| Font Rendering | [stb_truetype](https://github.com/nothings/stb) |
+| Font Rendering | [stb_truetype](https://github.com/nothings/stb); shaping with [HarfBuzz](https://harfbuzz.github.io/) and SheenBidi |
 | Image I/O | [stb_image](https://github.com/nothings/stb), stb_image_write |
 
 ## Key Features
@@ -37,13 +38,16 @@ Both images are rendered headless by the extension itself – see the [Feature G
 Write your shaders in GLSL. php-vio compiles them to SPIR-V via glslang, then cross-compiles to the active backend's native format (GLSL for OpenGL, MSL for Metal, HLSL for D3D) using SPIRV-Cross. Shader reflection lets you introspect uniforms, textures, and vertex inputs at runtime.
 
 ### Audio Engine
-Load and play MP3, WAV, FLAC, and OGG files. Control volume, pitch, pan, and looping. Position sounds in 3D space with a listener model.
+Load and play MP3, WAV, FLAC, Ogg Vorbis and Ogg Opus files. Control volume, pitch, pan, and looping. Position sounds in 3D space with a listener model.
 
 ### Video Recording & Live Streaming
 Capture frames to H.264/MP4 with optional hardware acceleration (VideoToolbox on macOS). Stream live to RTMP or SRT endpoints using FFmpeg.
 
 ### Headless Mode
 Create a rendering context without a window for automated testing, CI pipelines, or server-side rendering. Capture framebuffer contents, save screenshots, and compare images pixel-by-pixel for visual regression testing.
+
+### Desktop Applications
+Several windows, menus, file dialogs, notifications, a tray icon, file drop, IME composition and screen-reader support, with an event loop that waits instead of polling – see [Desktop Applications](/guide/desktop-apps).
 
 ## Platform Support
 
@@ -55,9 +59,8 @@ Create a rendering context without a window for automated testing, CI pipelines,
 
 ## Requirements
 
-- PHP 8.4 or later
-- GLFW 3.4 (for windowing)
-- Optional: Vulkan SDK, FFmpeg, glslang, SPIRV-Cross
+- PHP 8.5 or later
+- Optional: glslang and SPIRV-Cross (shaders on every backend but raw OpenGL GLSL), Vulkan SDK, FFmpeg, HarfBuzz, GLFW 3.4
 
 ## Next Steps
 

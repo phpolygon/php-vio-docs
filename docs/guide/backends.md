@@ -31,16 +31,16 @@ With `vio_create("auto", ["prefer" => "performance" | "quality" | "compat", "req
 
 On macOS, Vulkan (via MoltenVK) is supported but opt-in – you must request it explicitly.
 
-## OpenGL (3.3 – 4.6 Core)
+## OpenGL (3.0 – 4.6)
 
 The most complete backend: every feature path exists here first.
 
 | Property | Value |
 |---|---|
-| API | OpenGL Core Profile, negotiated 4.6 → 3.3 (`vio_gl_info()` shows what you got) |
+| API | OpenGL, negotiated 4.6 → 3.0, core profile from 3.2 (`vio_gl_info()` shows what you got) |
 | Loader | GLAD (vendored) |
 | Platforms | macOS, Linux, Windows |
-| Headless | ✅ via hidden GLFW window |
+| Headless | ✅ via a hidden window |
 
 OpenGL is the fallback on every platform. Compute, storage images and vertex-stage storage need a 4.3+ context (never on macOS, where Apple's GL stops at 4.1); the [feature ladder](https://github.com/phpolygon/php-vio/blob/main/CLAUDE.md#opengl-feature-ladder) lists which flag needs which core version or extension.
 

@@ -51,6 +51,12 @@ missing.
 | ![Compute storage image](/gallery/compute_storage_image.png) | ![Compute vertex storage](/gallery/compute_vertex_storage.png) |
 | **Storage image** – compute shader writes an `image2D` (`['storage' => true]`), the render pass samples it. | **Vertex-stage storage buffer** – compute writes instance matrices, the vertex shader reads them via `gl_InstanceIndex`; no readback. [API](/api/buffers) |
 
+## Geometry & tessellation stages
+
+| | |
+|---|---|
+| ![Geometry shader point sprites](/gallery/geometry_shader.png) | ![Tessellated patches](/gallery/tessellation.png) |
+| **Geometry shader** – `vio_shader(['geometry' => …])`: single vertices drawn as `VIO_POINTS`, the geometry stage emits a sprite quad per point. [Guide](/guide/shaders#geometry-tessellation-stages) | **Tessellation** – `tess_control` + `tess_eval` on `VIO_PATCHES` (`'patch_vertices' => 4`): the evaluation stage displaces quad patches; level 2 (left) vs 18 (right). [Guide](/guide/shaders#geometry-tessellation-stages) |
 ## Ray tracing
 
 | | |
@@ -67,7 +73,11 @@ missing.
 | Post-process, shadow map, MRT, cube RT, HDR | ✅ | ✅ | ✅ | ✅ | ✅ |
 | MSAA render target | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Compute storage image, vertex storage | ✅ (GL ≥ 4.3) | ✅ | ✅ | ✅ | ✅ |
+| Geometry shader, tessellation | ✅ (GL ≥ 3.2 / 4.0) | ✅ | ✅ | ✅ (emulated with compute kernels) | ✅ |
 | Ray query shadows | – | – | ✅ | not run | ✅ |
 | Opacity micromaps | – | – | ✅ | – | ✅ |
 
 Query [`vio_supports_feature()`](/api/backend#vio-supports-feature) before relying on a path.
+
+The gallery covers rendering paths. Upscaling, draw bundles, mesh shaders, multiview and the
+[desktop APIs](/guide/desktop-apps) (windows, menus, dialogs, tray) have no scene yet.

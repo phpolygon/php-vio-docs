@@ -7,12 +7,16 @@ php-vio is a standard PHP extension built with phpize/autotools. All features ar
 | Flag | Feature | Dependency |
 |---|---|---|
 | `--enable-vio` | Core extension | PHP development headers |
-| `--with-glfw` | Windowing & input | GLFW 3.4 |
+| `--with-glfw` | Windowing & input through GLFW – optional where a native window layer is built (Windows, macOS, X11, Wayland) | GLFW 3.4 |
+| `--with-x11` | Native X11 window layer (Linux; on by default when the headers are found) | Xlib, XRandR |
+| `--with-wayland` | Native Wayland window layer (Linux; on by default when the libraries are found) | wayland-client, wayland-cursor, xkbcommon, wayland-scanner, wayland-protocols |
 | `--with-glslang` | GLSL → SPIR-V compilation | glslang |
 | `--with-spirv-cross` | Shader reflection & transpilation | SPIRV-Cross |
 | `--with-vulkan` | Vulkan backend | Vulkan SDK |
 | `--with-ffmpeg` | Video recording & streaming | FFmpeg (libavcodec, libavformat, libavutil, libswscale) |
 | `--with-metal` | Metal backend (macOS only) | Metal + QuartzCore frameworks |
+| `--with-harfbuzz` | Text shaping: Arabic, Thai, ligatures, bidirectional and vertical text, on-demand glyph atlas, SDF fonts (`VIO_HAS_SHAPING`) | HarfBuzz |
+| `--with-accesskit=DIR` | Screen readers ([`vio_a11y_update()`](/api/desktop#vio-a11y-update)) | The unpacked [accesskit-c](https://github.com/AccessKit/accesskit-c) release package |
 | `--with-ffx` | AMD FidelityFX FSR 3.1 [native upscaler](/api/upscaling) (Windows: on by default; elsewhere opt-in) | None at build time (vendored MIT headers); `amd_fidelityfx_*.dll` at run time |
 
 ::: info DLSS
@@ -33,11 +37,11 @@ phpize && ./configure --enable-vio --with-glfw && make
 ## Full Build (macOS)
 
 ```bash
-brew install glfw glslang spirv-cross vulkan-loader ffmpeg
+brew install glfw glslang spirv-cross vulkan-loader vulkan-headers ffmpeg harfbuzz
 
 phpize && ./configure --enable-vio \
   --with-glfw --with-glslang --with-spirv-cross \
-  --with-vulkan --with-ffmpeg --with-metal && \
+  --with-vulkan --with-ffmpeg --with-metal --with-harfbuzz && \
 make -j$(sysctl -n hw.ncpu)
 ```
 
@@ -46,11 +50,12 @@ make -j$(sysctl -n hw.ncpu)
 ```bash
 sudo apt install php-dev libglfw3-dev glslang-dev libvulkan-dev \
   libavcodec-dev libavformat-dev libavutil-dev libswscale-dev \
-  spirv-cross libspirv-cross-c-shared-dev
+  spirv-cross libspirv-cross-c-shared-dev libharfbuzz-dev libx11-dev libxrandr-dev \
+  libwayland-dev wayland-protocols libxkbcommon-dev
 
 phpize && ./configure --enable-vio \
   --with-glfw --with-glslang --with-spirv-cross \
-  --with-vulkan --with-ffmpeg && \
+  --with-vulkan --with-ffmpeg --with-harfbuzz && \
 make -j$(nproc)
 ```
 

@@ -126,7 +126,7 @@ vio_bind_texture($ctx, $albedo, 0);
 ```
 
 ::: tip Sampler budget
-A backend now supports up to **8** regular texture samplers per shader alongside the dedicated shadow/depth samplers (php-vio ≥ v1.21.1). 3D textures, cubemaps and 2D textures all draw from this pool.
+A shader stage can bind as many textures as the backend has texture units – [`vio_texture_units()`](/api/backend#vio-texture-units)`['units']`, 16 on Direct3D 11 and Metal and at least that elsewhere (since v2.42.0; before, 12 regular and 4 comparison samplers). 2D and 3D textures, arrays and cubemaps all draw from this pool, and any unit may be a comparison (shadow) sampler.
 :::
 
 ## vio_bind_texture

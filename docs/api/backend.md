@@ -111,12 +111,37 @@ The API level the backend negotiated and what the device can do there. `false` w
 | `driver` | Driver version |
 | `device_type` | `'discrete'`, `'integrated'`, `'software'` or `'unknown'` |
 | `vram_bytes` | Video memory |
-| `selected_by` | `'explicit'` (backend named), `'priority'` (plain `'auto'`), `'score'` or `'benchmark'` (`'auto'` with `prefer` / `require` / `benchmark`) |
+| `conventions` | `['rt_origin_top' => bool, 'clip_z_remap' => bool, 'depth_stored' => '(ndc_z + 1) / 2']` – render-target orientation and depth convention of the backend |
+| `samplers` | Texture units of a shader stage; `textures` and `sampler_states` as in [`vio_texture_units()`](#vio-texture-units), `total` = its `units` || `selected_by` | `'explicit'` (backend named), `'priority'` (plain `'auto'`), `'score'` or `'benchmark'` (`'auto'` with `prefer` / `require` / `benchmark`) |
 | `candidates` | The [`vio_rank_backends()`](#vio-rank-backends) ranking of a scored `'auto'`, `[]` otherwise |
 
 The Metal language ladder can be pinned with `vio_create(['msl_version' => 21])` or the
 `VIO_METAL_MSL_VERSION` environment variable.
 
+## vio_texture_units
+
+```php
+array vio_texture_units(VioContext $context)
+```
+
+The texture units of the context, without the cost of `vio_backend_info()`. Since v2.42.0.
+
+| Key | Meaning |
+|---|---|
+| `units` | Texture units one shader stage can bind; any of them may be a comparison (shadow) sampler |
+| `textures` | The backend's per-stage texture limit |
+| `sampler_states` | The backend's per-stage sampler limit |
+
+`units` is 16 on Direct3D 11 and Metal. OpenGL reports `GL_MAX_TEXTURE_IMAGE_UNITS`, Vulkan the
+device's descriptor limits, Direct3D 12 16 with FXC and more with `'shader_model' => 6`. A shader
+that declares more samplers than `units` fails to compile with a warning.
+
+```php
+$units = vio_texture_units($ctx)['units'];
+if ($units < 24) {
+    // fall back to the material variant with fewer textures
+}
+```
 ## vio_adapters
 
 ```php

@@ -5,7 +5,8 @@ Functions for loading TrueType fonts and rendering text.
 ## vio_font
 
 ```php
-VioFont|false vio_font(VioContext $context, string $path, float $size = 24.0, float $scale = 1.0)
+VioFont|false vio_font(VioContext $context, string $path, float $size = 24.0, float $scale = 1.0,
+                       ?array $options = null)
 ```
 
 Load a TTF font file and create a font atlas.
@@ -13,7 +14,11 @@ Load a TTF font file and create a font atlas.
 - `$path` – Path to a `.ttf` / `.otf` font file
 - `$size` – Font size in logical pixels
 - `$scale` – Device pixel ratio: the atlas is rasterized at `$size * $scale` physical pixels while every metric (`vio_text` positions, `vio_text_measure` results) stays in logical `$size` units, so text stays crisp when a transform magnifies it. Values < 1 are clamped to 1.0
+- `$options` – `'sdf' => true | int`: a signed-distance-field atlas, so glyph edges stay sharp at any magnification (2D transforms, zoomed UI). An int sets the spread in atlas pixels (default `size * scale / 8`, 2 to 32). Needs the HarfBuzz build; [`vio_font_info()`](#vio-font-info)`['sdf']` reports the spread in use (`0` = coverage atlas). Rasterize an SDF font at 24 px or more – below that, thin strokes come out narrower than the coverage glyphs. Since v2.43.0
 
+```php
+$ui = vio_font($ctx, __DIR__ . '/Inter.ttf', 32.0, 1.0, ['sdf' => true]);
+```
 With HarfBuzz shaping (`VIO_HAS_SHAPING === 1`) the atlas is keyed by glyph index and fills on demand on every backend: `vio_text` rasterizes new glyphs and uploads only the rectangle they dirtied, `vio_text_measure` rasterizes nothing ([`vio_font_info()`](#vio-font-info)). Without HarfBuzz the legacy path packs a 4096 × 4096 stb_truetype atlas with these Unicode ranges up front:
 
 | Range | Description | Approx. Glyphs |
@@ -60,7 +65,7 @@ With HarfBuzz, `\n` always starts a new line and text is bidi-resolved and shape
 $font = vio_font($ctx, "/System/Library/Fonts/Helvetica.ttc", 32.0);
 
 vio_text($ctx, $font, "Score: 42", 10, 40, [
-    "color" => 0xFFFF00FF,  // Yellow
+    "color" => 0xFFFFFF00,  // Yellow
     "z"     => 10.0,        // On top of everything
 ]);
 ```

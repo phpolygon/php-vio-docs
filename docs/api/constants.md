@@ -248,6 +248,9 @@ sampler registers come from SPIR-V reflection – a whole shader in HLSL would h
 | `VIO_FEATURE_RENDER_TARGET_DEPTH_SAMPLE` | 68 |
 | `VIO_FEATURE_RENDER_TARGET_STORAGE` | 69 |
 | `VIO_FEATURE_UPSCALER_NATIVE` | 70 |
+| `VIO_FEATURE_UPSCALER_PREPARE` | 71 |
+| `VIO_FEATURE_EXPLICIT_PRESENT` | 72 |
+| `VIO_FEATURE_MULTI_WINDOW` | 73 |
 
 Query support at runtime with [`vio_supports_feature()`](/api/backend#vio-supports-feature) and
 how a backend provides it (native or emulated) with [`vio_feature_info()`](/api/backend#vio-feature-info).
@@ -374,6 +377,34 @@ The block-compressed formats are texture formats (`vio_texture(['format' => …]
 | `VIO_CURSOR_DISABLED` | 1 | Hidden, confined, raw mouse motion (first-person controls) |
 | `VIO_CURSOR_HIDDEN` | 2 | Cursor hidden, not confined |
 
+## Cursor Shapes
+
+For [`vio_set_cursor()`](/api/window#vio-set-cursor).
+
+| Constant | Value |
+|---|---|
+| `VIO_CURSOR_SHAPE_ARROW` | 0 |
+| `VIO_CURSOR_SHAPE_IBEAM` | 1 |
+| `VIO_CURSOR_SHAPE_CROSSHAIR` | 2 |
+| `VIO_CURSOR_SHAPE_HAND` | 3 |
+| `VIO_CURSOR_SHAPE_RESIZE_EW` | 4 |
+| `VIO_CURSOR_SHAPE_RESIZE_NS` | 5 |
+| `VIO_CURSOR_SHAPE_RESIZE_NWSE` | 6 |
+| `VIO_CURSOR_SHAPE_RESIZE_NESW` | 7 |
+| `VIO_CURSOR_SHAPE_RESIZE_ALL` | 8 |
+| `VIO_CURSOR_SHAPE_NOT_ALLOWED` | 9 |
+
+## Window Events
+
+For [`vio_inject_window_event()`](/api/window#vio-inject-window-event).
+
+| Constant | Value |
+|---|---|
+| `VIO_WINDOW_EVENT_CLOSE` | 1 |
+| `VIO_WINDOW_EVENT_FOCUS` | 2 |
+| `VIO_WINDOW_EVENT_MINIMIZE` | 3 |
+| `VIO_WINDOW_EVENT_SCALE` | 4 |
+| `VIO_WINDOW_EVENT_REFRESH` | 5 |
 ## Touch Phases
 
 Used by `vio_touch_get()` and `vio_touch_inject()` for the touch `phase` field.

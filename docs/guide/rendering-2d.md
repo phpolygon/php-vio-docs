@@ -21,12 +21,12 @@ The batch starts with a capacity of **4096 items** (24,576 vertices) and grows d
 ```php
 // Filled rectangle
 vio_rect($ctx, 100, 100, 200, 150, [
-    "color" => 0xFF0000FF,  // Red, full alpha
+    "color" => 0xFFFF0000,  // Red, full alpha
 ]);
 
 // Outlined rectangle
 vio_rect($ctx, 100, 100, 200, 150, [
-    "color"   => 0x00FF00FF,
+    "color"   => 0xFF00FF00,
     "outline" => true,
 ]);
 ```
@@ -35,7 +35,7 @@ vio_rect($ctx, 100, 100, 200, 150, [
 
 ```php
 vio_rounded_rect($ctx, 50, 50, 300, 200, 16.0, [
-    "color" => 0x3366FFFF,
+    "color" => 0xFF3366FF,
 ]);
 ```
 
@@ -44,12 +44,12 @@ vio_rounded_rect($ctx, 50, 50, 300, 200, 16.0, [
 ```php
 // Filled circle
 vio_circle($ctx, 400, 300, 50, [
-    "color" => 0xFFFF00FF,
+    "color" => 0xFFFFFF00,
 ]);
 
 // Outlined circle with custom segment count
 vio_circle($ctx, 400, 300, 50, [
-    "color"    => 0xFFFF00FF,
+    "color"    => 0xFFFFFF00,
     "outline"  => true,
     "segments" => 64,
 ]);
@@ -112,11 +112,11 @@ Font rendering uses stb_truetype with a 4096x4096 atlas texture that supports mu
 Colors are 32-bit unsigned integers in **AARRGGBB** format:
 
 ```php
-0xFF0000FF  // Red,   alpha=FF
-0x00FF00FF  // Green, alpha=FF
-0x0000FFFF  // Blue,  alpha=FF
+0xFFFF0000  // Red,   alpha=FF (the first byte)
+0xFF00FF00  // Green, alpha=FF
+0xFF0000FF  // Blue,  alpha=FF
 0xFFFFFFFF  // White, alpha=FF
-0xFFFFFF80  // White, alpha=80 (50% transparent)
+0x80FFFFFF  // White, alpha=80 (50% transparent)
 ```
 
 The `color` option is an alias for `fill` – both work.
@@ -126,8 +126,8 @@ The `color` option is an alias for `fill` – both work.
 Every 2D primitive accepts a `z` option (default `0.0`). Lower z-values are drawn first (behind), higher values on top.
 
 ```php
-vio_rect($ctx, 100, 100, 200, 200, ["color" => 0xFF0000FF, "z" => 0.0]);  // Behind
-vio_rect($ctx, 150, 150, 200, 200, ["color" => 0x00FF00FF, "z" => 1.0]);  // In front
+vio_rect($ctx, 100, 100, 200, 200, ["color" => 0xFFFF0000, "z" => 0.0]);  // Behind
+vio_rect($ctx, 150, 150, 200, 200, ["color" => 0xFF00FF00, "z" => 1.0]);  // In front
 ```
 
 ## Transforms
@@ -141,7 +141,7 @@ $cos = cos($angle);
 $sin = sin($angle);
 vio_push_transform($ctx, $cos, $sin, -$sin, $cos, 400, 300);
 
-vio_rect($ctx, -50, -50, 100, 100, ["color" => 0xFF0000FF]);
+vio_rect($ctx, -50, -50, 100, 100, ["color" => 0xFFFF0000]);
 
 vio_pop_transform($ctx);
 ```
@@ -161,7 +161,7 @@ Restrict rendering to a rectangular region:
 vio_push_scissor($ctx, 100, 100, 400, 300);
 
 // Only pixels within (100,100)-(500,400) are drawn
-vio_rect($ctx, 0, 0, 800, 600, ["color" => 0xFF0000FF]);
+vio_rect($ctx, 0, 0, 800, 600, ["color" => 0xFFFF0000]);
 
 vio_pop_scissor($ctx);
 ```
@@ -200,7 +200,7 @@ vio_bind_pipeline($ctx, $pipeline);
 vio_draw($ctx, $mesh);
 
 // 2D overlay (UI, HUD, debug info)
-vio_rect($ctx, 10, 10, 200, 40, ["color" => 0x000000AA, "z" => 0]);
+vio_rect($ctx, 10, 10, 200, 40, ["color" => 0xAA000000, "z" => 0]);
 vio_text($ctx, $font, "FPS: 60", 20, 35, ["color" => 0xFFFFFFFF, "z" => 1]);
 vio_draw_2d($ctx);
 

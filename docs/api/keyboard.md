@@ -110,6 +110,53 @@ void vio_keyboard_hide(VioContext $context)
 
 Hide the on-screen keyboard (iOS). Call it when a text field loses focus. No-op on desktop.
 
+## vio_on_preedit
+
+```php
+void vio_on_preedit(VioContext|VioWindow $context, callable $callback)
+```
+
+Called while an input method composes text (Japanese, Chinese, Korean, dead keys):
+`callable(string $text, int $start, int $end)` – the composition and the selected range in
+codepoints (`$start == $end`: the caret). `''` means the composition was committed or cancelled;
+the committed text arrives through [`vio_on_char()`](#vio-on-char) /
+[`vio_chars_typed()`](#vio-chars-typed) as usual. Draw the composition at the text cursor.
+[`vio_platform_info()`](/api/desktop#vio-platform-info)`['ime_preedit']` says whether the platform
+reports it (Win32, Cocoa, X11, Wayland; not GLFW). Since v2.41.0.
+
+```php
+$composition = '';
+vio_on_preedit($ctx, function (string $text, int $start, int $end) use (&$composition) {
+    $composition = $text;            // underline it after the committed text
+});
+vio_ime_rect($ctx, 120, 200, 2, 24); // where the caret is, so the candidate window sits next to it
+```
+
+## vio_ime_rect
+
+```php
+bool vio_ime_rect(VioContext|VioWindow $context, int $x, int $y, int $width, int $height)
+```
+
+Tell the input method where the text being composed is (window coordinates as
+[`vio_mouse_position()`](/api/mouse#vio-mouse-position)), so it puts its candidate window next to it.
+
+## vio_ime_enable
+
+```php
+bool vio_ime_enable(VioContext|VioWindow $context, bool $enabled)
+```
+
+Turn the input method on (text fields) or off (game controls: keys go straight through).
+
+## vio_inject_preedit
+
+```php
+void vio_inject_preedit(VioContext|VioWindow $context, string $text, int $start = -1, int $end = -1)
+```
+
+A composition through the same path as the platform's (tests). `-1` = after the text;
+`$start <= $end <=` the text's length in codepoints, anything else throws a `ValueError`.
 ## vio_inject_key
 
 ```php

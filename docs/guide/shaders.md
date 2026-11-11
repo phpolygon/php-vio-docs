@@ -164,11 +164,88 @@ php-vio includes built-in shaders for the 2D renderer and a default 3D shader. T
 - `shaders/default_shaders.h` – Default 3D vertex/fragment shader
 - `shaders/shaders_2d.h` – 2D batch renderer shader
 
+## Geometry & tessellation stages
+
+`vio_shader()` accepts further stages next to `vertex` and `fragment`:
+
+| Key | Stage | Feature flag |
+|---|---|---|
+| `geometry` | Geometry shader | `VIO_FEATURE_GEOMETRY` |
+| `tess_control` + `tess_eval` | Tessellation control and evaluation, always as a pair | `VIO_FEATURE_TESSELLATION` |
+
+Every backend can run both: OpenGL from 3.2 (geometry) and 4.0 (tessellation), Direct3D 11 / 12 and
+Vulkan natively, Metal through compute kernels php-vio generates. Check the flag first – where it
+is `false`, `vio_shader()` returns `false` with a warning.
+[`vio_feature_info()`](/api/backend#vio-feature-info) tells whether a stage runs natively or emulated.
+
+| | |
+|---|---|
+| ![Geometry shader: point sprites emitted from single vertices](/gallery/geometry_shader.png) | ![Tessellation: quad patches displaced in the evaluation stage](/gallery/tessellation.png) |
+| Geometry stage – `VIO_POINTS`, one sprite quad per vertex | Tessellation – quad patches, level 2 (left) vs 18 (right) |
+
+```php
+// Point sprites: one vertex in, a quad out.
+$vs = <<<'GLSL'
+#version 450
+layout(location = 0) in vec3 aPos;
+layout(location = 0) out vec4 vPos;
+void main() { vPos = vec4(aPos, 1.0); gl_Position = vPos; }
+GLSL;
+
+$gs = <<<'GLSL'
+#version 450
+layout(points) in;
+layout(triangle_strip, max_vertices = 4) out;
+layout(location = 0) in vec4 vPos[];
+uniform float u_half;
+void main() {
+    vec4 c = vPos[0];
+    gl_Position = c + vec4(-u_half, -u_half, 0, 0); EmitVertex();
+    gl_Position = c + vec4( u_half, -u_half, 0, 0); EmitVertex();
+    gl_Position = c + vec4(-u_half,  u_half, 0, 0); EmitVertex();
+    gl_Position = c + vec4( u_half,  u_half, 0, 0); EmitVertex();
+    EndPrimitive();
+}
+GLSL;
+
+$fs = <<<'GLSL'
+#version 450
+layout(location = 0) out vec4 fragColor;
+void main() { fragColor = vec4(1.0, 0.6, 0.2, 1.0); }
+GLSL;
+
+$points = vio_mesh($ctx, [
+    'vertices' => [-0.5, 0.0, 0.0,   0.0, 0.0, 0.0,   0.5, 0.0, 0.0],
+    'layout'   => [VIO_FLOAT3],
+    'topology' => VIO_POINTS,
+]);
+
+if (vio_supports_feature($ctx, VIO_FEATURE_GEOMETRY)) {
+    $shader   = vio_shader($ctx, ['vertex' => $vs, 'geometry' => $gs, 'fragment' => $fs]);
+    $pipeline = vio_pipeline($ctx, ['shader' => $shader, 'topology' => VIO_POINTS,
+                                    'cull_mode' => VIO_CULL_NONE, 'depth_test' => false]);
+    vio_bind_pipeline($ctx, $pipeline);
+    vio_set_uniform($ctx, 'u_half', 0.05);   // uniforms of the geometry stage work like any other
+    vio_draw($ctx, $points);
+}
+```
+
+Tessellation works the same way. A pipeline whose shader has tessellation stages always draws
+`VIO_PATCHES` and takes the control-point count from `patch_vertices` (1 to 32, default 3):
+
+```php
+$shader   = vio_shader($ctx, ['vertex' => $vs, 'tess_control' => $tcs, 'tess_eval' => $tes, 'fragment' => $fs]);
+$pipeline = vio_pipeline($ctx, ['shader' => $shader, 'patch_vertices' => 4]);
+vio_set_uniform($ctx, 'u_level', 16.0);   // e.g. a control-stage uniform driving gl_TessLevelOuter / Inner
+```
+
+On Direct3D an HLSL source can replace a translated stage:
+`'hlsl' => ['geometry' | 'tess_control' | 'tess_eval' => $source]` ([API](/api/shaders)).
 ## Tips
 
 - Use `layout(std140)` for uniform blocks – it guarantees consistent memory layout across backends
 - Avoid `push_constant` (Vulkan-specific) if you want cross-backend shaders
 - Use `binding` / `location` qualifiers explicitly – don't rely on auto-assignment
 - Render-target textures are row 0 = bottom on OpenGL and row 0 = top on D3D/Metal – flip V when sampling an offscreen target on those backends (see [Render Targets → Orientation](/api/render-targets#orientation))
-- A shader can bind up to **8** regular texture samplers (2D, 3D, cubemap) in addition to the dedicated shadow/depth samplers – keep within that budget for cross-backend portability
+- A shader stage can bind 16 textures on every backend (2D, 3D, cubemap, shadow samplers together); [`vio_texture_units()`](/api/backend#vio-texture-units) reports when a backend offers more – stay within 16 for cross-backend portability
 - Test with `vio_shader_reflect()` to verify your shader's interface matches your vertex data

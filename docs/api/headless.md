@@ -69,7 +69,7 @@ $ctx = vio_create("opengl", [
 // Render scene
 vio_begin($ctx);
 vio_clear($ctx, 0.2, 0.2, 0.2, 1.0);
-vio_rect($ctx, 10, 10, 100, 100, ["color" => 0xFF0000FF]);
+vio_rect($ctx, 10, 10, 100, 100, ["color" => 0xFFFF0000]);
 vio_draw_2d($ctx);
 vio_end($ctx);
 
