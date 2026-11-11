@@ -28,6 +28,9 @@ names ([`vio_key_name()`](/api/keyboard#vio-key-name)) and the monitor list
 Without `VIO_PLATFORM` the native layer of the OS wins when it is built in (on Linux Wayland
 before X11, Wayland only inside a Wayland session), then GLFW, then `null`.
 
+What the platform can do for a desktop application – dialogs, menus, tray, cursors – is reported by
+[`vio_platform_info()`](/api/desktop#vio-platform-info).
+
 ```php
 if (vio_platform() === 'null') {
     // no window system: render headless only

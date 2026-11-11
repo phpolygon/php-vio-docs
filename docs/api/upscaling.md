@@ -110,7 +110,7 @@ not usable here or does not offer the mode at that size – never a warning.
 ## vio_upscaler_info
 
 ```php
-array vio_upscaler_info(VioContext $context, VioUpscaler|int $which = VIO_UPSCALER_FSR3)
+array vio_upscaler_info(VioContext $context, VioUpscaler|int $which = VIO_UPSCALER_FSR3, bool $probe = true)
 ```
 
 | Key | Description |
@@ -126,11 +126,53 @@ array vio_upscaler_info(VioContext $context, VioUpscaler|int $which = VIO_UPSCAL
 | `device` | Vulkan: device features / extensions enabled for native upscalers at context creation |
 | `live` | Upscalers alive on the backend |
 | `host_bytes` | CPU memory the providers hold |
+| `state` | `'idle'`, `'preparing'`, `'ready'` or `'failed'` – see [`vio_upscaler_prepare()`](#vio-upscaler-prepare) |
+| `timings` | Milliseconds per step of the provider's start-up (`plugin_load`, `first_supported`, `prepare_begin`, `prepare_run`, `create` and the provider's own) |
 
+`$probe = false` never touches the provider: one that is still `'idle'` is reported unsupported and
+stays `'idle'`. While a provider is `'preparing'` the call never blocks.
 With a `VioUpscaler` additionally `valid`, `quality`, `render_width`, `render_height` (the size
-the provider chose), `display_width`, `display_height`, `jitter_phases` and `gpu_memory` (bytes; DLSS:
+the provider chose), `display_width`, `display_height`, `preset`, `jitter_phases` and `gpu_memory` (bytes; DLSS:
 all of its VRAM on the device).
 
+## vio_upscaler_prepare
+
+```php
+bool vio_upscaler_prepare(VioContext $context, int $provider)
+```
+
+Start a provider's first-use work on a worker thread and return at once, so a running render loop
+does not stall. The first contact with DLSS on a device initialises NGX, which takes seconds;
+FSR 3.1 needs no preparation. Since v2.39.0; `VIO_FEATURE_UPSCALER_PREPARE` tells whether a
+provider can do this on the device.
+
+Returns `true` when the work started, is running or the provider is already usable. `false` when
+the provider is not usable (`state` `'failed'`, with the `reason`) or cannot prepare away from this
+thread (`state` stays `'idle'`: a plugin built before this function – its first
+`vio_upscaler_supported()` / `vio_upscaler_info()` call then blocks as before). Never a warning.
+
+Poll `vio_upscaler_info($ctx, $provider)['state']` until it leaves `'preparing'`. Until then
+`vio_upscaler_supported()` and `vio_upscaler_render_size()` answer `false` and
+`vio_upscaler_create()` fails with a warning – none of them waits. Destroying the context waits
+for the worker.
+
+```php
+vio_upscaler_prepare($ctx, VIO_UPSCALER_DLSS);
+
+$upscaler = null;
+while (!vio_should_close($ctx)) {
+    if ($upscaler === null
+        && vio_upscaler_info($ctx, VIO_UPSCALER_DLSS, false)['state'] === 'ready') {
+        $upscaler = vio_upscaler_create($ctx, ['provider' => VIO_UPSCALER_DLSS,
+            'display_width' => 1920, 'display_height' => 1080, 'quality' => VIO_UPSCALE_QUALITY]);
+    }
+    vio_begin($ctx);
+    vio_clear($ctx, 0.0, 0.0, 0.0);
+    // ... render; upscale with $upscaler once it exists ...
+    vio_end($ctx);
+    vio_poll_events($ctx);
+}
+```
 ## vio_upscaler_create
 
 ```php

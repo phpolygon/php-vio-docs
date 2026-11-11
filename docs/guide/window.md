@@ -1,6 +1,6 @@
 # Window Management
 
-php-vio uses GLFW for window creation and management. A window is implicitly created when you call `vio_create()`.
+php-vio creates windows through its own layer for the window system – Win32, Cocoa, X11 or Wayland – or through GLFW where none is built in ([`vio_platform()`](/api/platform#vio-platform)). A window is implicitly created when you call `vio_create()`.
 
 ## Window Options
 
@@ -94,3 +94,10 @@ vio_on_resize($ctx, function(int $width, int $height) {
     vio_viewport($ctx, 0, 0, $width, $height);
 });
 ```
+
+## Beyond one window
+
+Further windows, close / focus / refresh callbacks, cursors, icons and size limits are on the
+[Window API page](/api/window); menus, dialogs, notifications and the tray icon on
+[Desktop Integration](/api/desktop). The [Desktop Applications](/guide/desktop-apps) guide puts them
+together.

@@ -2,7 +2,7 @@ import { defineConfig } from 'vitepress'
 
 export default defineConfig({
   title: 'php-vio',
-  description: 'GPU Rendering, Audio, Video & Input for PHP (php-vio v2.35.0)',
+  description: 'GPU Rendering, Audio, Video & Input for PHP (php-vio v2.44.1)',
   lang: 'en-US',
   base: '/php-vio-docs/',
 
@@ -47,6 +47,7 @@ export default defineConfig({
             { text: 'Keyboard & Mouse', link: '/guide/input' },
             { text: 'Gamepad', link: '/guide/gamepad' },
             { text: 'Window Management', link: '/guide/window' },
+            { text: 'Desktop Applications', link: '/guide/desktop-apps' },
           ],
         },
         {
@@ -72,6 +73,7 @@ export default defineConfig({
           items: [
             { text: 'Context & Frame', link: '/api/context' },
             { text: 'Window', link: '/api/window' },
+            { text: 'Desktop Integration', link: '/api/desktop' },
             { text: 'Backend & Adapters', link: '/api/backend' },
             { text: 'Platform & Clipboard', link: '/api/platform' },
             { text: 'GPU Profiling', link: '/api/profiling' },

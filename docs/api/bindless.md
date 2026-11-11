@@ -26,6 +26,8 @@ layout(set = 1, binding = 3) uniform sampler        vio_sampler_clamp;          
 layout(set = 1, binding = 4) uniform sampler        vio_sampler_nearest_clamp;   // optional
 layout(set = 1, binding = 5) uniform textureCube    vio_cubes[];                 // VioCubemap slots
 layout(set = 1, binding = 6) uniform texture2DArray vio_texture_arrays[];        // layered VioTexture slots
+layout(set = 1, binding = 7) uniform sampler        vio_sampler_aniso;           // optional: linear, repeat, 16x anisotropic (v2.43.0)
+layout(set = 1, binding = 8) uniform sampler        vio_sampler_aniso_clamp;     // optional: the same, clamped to the edge
 
 // ...
 o = texture(sampler2D(vio_textures[nonuniformEXT(slot)], vio_sampler), uv);

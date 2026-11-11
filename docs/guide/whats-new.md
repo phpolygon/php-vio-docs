@@ -1,10 +1,96 @@
 # What's New
 
-This documentation describes **php-vio v2.38.1** (2026-10-30). The full commit-level history is in
+This documentation describes **php-vio v2.44.1** (2026-11-11). The full commit-level history is in
 [`CHANGELOG.md`](https://github.com/phpolygon/php-vio/blob/main/CHANGELOG.md); every release ships
 binaries for Linux x86_64/arm64, macOS x86_64/arm64 and Windows x64 (ts + nts) on the
 [Releases](https://github.com/phpolygon/php-vio/releases) page.
 
+## 2.44.1
+
+- **Tessellation fixes** – on D3D12 with Shader Model 6, hull shaders generated from GLSL keep their
+  state local (a driver for Intel UHD 630 aborted on tessellation levels computed from control-point
+  data); on Metal, an evaluation stage that does not read `gl_in[].gl_Position` draws again.
+
+## 2.44.0
+
+- **Adapter choice on Metal** – [`vio_create(['adapter' => 'AMD'])`](/api/context) or the environment
+  variable `VIO_METAL_ADAPTER` picks the device on Macs with two GPUs.
+- **Intel Macs and virtual machines** – Metal runs on GPUs of the Mac1 family only (the paravirtual
+  device of macOS VMs) and works around driver faults on Intel Mac hardware.
+- OpenGL: per-program caches no longer outlive their context.
+
+## 2.43.1
+
+- Shader cache keys include the php-vio version, so a cache written by another version is not reused.
+- D3D12: a freed SRV slot returns to the heap it came from.
+
+## 2.43.0
+
+- **Adapter choice** – [`vio_create(['adapter' => …])`](/api/context) opens the adapter at a position
+  in [`vio_adapters()`](/api/backend#vio-adapters) or with a name part, on D3D11, D3D12 and Vulkan.
+- **SDF fonts** – [`vio_font(…, ['sdf' => true])`](/api/fonts#vio-font) builds a signed-distance-field
+  atlas: glyph edges stay sharp at any magnification.
+- **Anisotropic bindless samplers** – `vio_sampler_aniso` and `vio_sampler_aniso_clamp` at set 1,
+  bindings 7 and 8 ([Bindless](/api/bindless)).
+- D3D12 and Metal: the bindless table and storage buffers work in mesh-shader pipelines; D3D12 has
+  four storage buffers for vertex, mesh and task stages; indirect and storage-instanced draws bind
+  their texture table.
+
+## 2.42.1
+
+- Uniform tables and constant buffers are sized by the shader's reflection – blocks with more than
+  256 entries or 4096 bytes keep their last uniforms. OpenGL finds any element of a uniform struct array.
+
+## 2.42.0
+
+- **Texture units from the backend** – sampler tables are sized by what the backend offers and any
+  unit may be a comparison sampler; [`vio_texture_units()`](/api/backend#vio-texture-units) reports
+  the units without the cost of `vio_backend_info()`.
+
+## 2.41.1
+
+- OpenGL: creating a render target keeps the bound target bound. D3D11: instanced draws keep their
+  instance buffer per device, so a second context draws.
+
+## 2.41.0
+
+Desktop applications ([guide](/guide/desktop-apps)):
+
+- **Event loop** – [`vio_wait_events()`](/api/context#vio-wait-events) blocks until something
+  happens, [`vio_wake()`](/api/context#vio-wake) ends the wait; window events
+  [`vio_on_close()`](/api/window#vio-on-close) (with veto), `vio_on_focus()`, `vio_on_minimize()`,
+  `vio_on_scale()`, `vio_on_refresh()`.
+- **Several windows** – [`vio_window()`](/api/window#vio-window) opens further windows on the
+  context's device on every backend, also as child and modal windows.
+- **Window details** – cursor shapes and images, window icon, size limits, aspect ratio,
+  always-on-top, opacity ([Window](/api/window#vio-set-cursor)).
+- **Dialogs and menus** – [`vio_file_dialog()`](/api/desktop#vio-file-dialog),
+  [`vio_message_box()`](/api/desktop#vio-message-box), [`vio_menu_bar()`](/api/desktop#vio-menu-bar),
+  [`vio_popup_menu()`](/api/desktop#vio-popup-menu).
+- **Shell** – [`vio_notify()`](/api/desktop#vio-notify), [`vio_set_progress()`](/api/desktop#vio-set-progress),
+  [`vio_tray()`](/api/desktop#vio-tray), [`vio_on_drop()`](/api/desktop#vio-on-drop),
+  [`vio_open_url()`](/api/desktop#vio-open-url), [`vio_reveal_file()`](/api/desktop#vio-reveal-file).
+- **IME composition** – [`vio_on_preedit()`](/api/keyboard#vio-on-preedit), `vio_ime_rect()`,
+  `vio_ime_enable()` on Windows, macOS, X11 and Wayland.
+- **Accessibility** – [`vio_a11y_update()`](/api/desktop#vio-a11y-update) describes the window to
+  screen readers through AccessKit (UI Automation, NSAccessibility, AT-SPI).
+- [`vio_platform_info()`](/api/desktop#vio-platform-info) reports what the window system offers.
+
+## 2.40.x
+
+- **Explicit present** – [`vio_begin($ctx, ['present' => bool])`](/api/context#vio-begin) decides
+  whether a frame reaches the screen, on every backend.
+- **Clip z on Metal** as on D3D and Vulkan: the depth buffer holds `(ndc_z + 1) / 2` on every
+  backend; `vio_backend_info()['conventions']` reports the conventions.
+- Every sampler reads the texture on its own unit, as on OpenGL (2.40.3); `vio_bind_cubemap()` on
+  Vulkan resolves the unit to the shader's sampler (2.40.2); a `vio_clear()` inside a frame no longer
+  becomes the next frame's screen clear (2.40.1).
+
+## 2.39.0
+
+- **Upscaler preparation** – [`vio_upscaler_prepare()`](/api/upscaling#vio-upscaler-prepare) runs a
+  provider's first-use work (DLSS: seconds of NGX initialisation) on a worker thread;
+  `vio_upscaler_info()['state']` and `['timings']` report it. Library paths are UTF-8.
 ## 2.38.1
 
 - **Objects released inside a frame** – a render target, texture, cubemap, buffer or compute pipeline that

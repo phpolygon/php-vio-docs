@@ -112,7 +112,7 @@ while (!vio_should_close($ctx)) {
 
     // Draw a red rectangle
     vio_rect($ctx, 100, 100, 200, 150, [
-        "color" => 0xFF0000FF,
+        "color" => 0xFFFF0000,
     ]);
 
     // Flush 2D batch
