@@ -100,24 +100,45 @@ Since v1.4.0, Metal has a complete native 2D rendering pipeline:
 - Scissor clipping with HiDPI scaling
 - Pixel readback via `vio_read_pixels()` and `vio_save_screenshot()`
 
-### Performance: Metal vs OpenGL
+### Performance
 
-Benchmarked on Apple M2 Pro (macOS, 1280x720, VSync off). Measures draw + flush time only (excludes present/VSync wait).
+[`examples/bench_backends.php`](https://github.com/phpolygon/php-vio/blob/main/examples/bench_backends.php) draws the same five scenes on every backend the build can open: 1280x720, headless, vsync off, 600 frames after 60 warm-up frames. The Mac tables give the frame time from `vio_begin()` to the return of `vio_end()` in microseconds, as median / 99th percentile. Measured with php-vio 2.44.1 and PHP 8.5.
 
-| Scenario | Metal | OpenGL | Delta |
-|---|---|---|---|
-| 500 rects | 192 us | 179 us | +7% |
-| 200 rects + 200 rounded rects + 50 text | 323 us | 313 us | +3% |
-| 1000 rects + 100 text | **301 us** | 374 us | **-20%** |
+**Apple M5 (macOS 27.2)**
 
-**Tail latency (frame time consistency):**
+| Scene | Metal | OpenGL 4.1 |
+|---|---:|---:|
+| 2D: 500 rects | 66 / 188 | 142 / 258 |
+| 2D: 200 rects + 200 rounded rects + 50 texts | 185 / 211 | 284 / 325 |
+| 2D: 1000 rects + 100 texts | 277 / 296 | 468 / 593 |
+| 3D: 1000 draws, 2 uniforms each | 231 / 249 | 616 / 675 |
+| 3D: 10 000 instances, 1 draw | 130 / 146 | 113 / 189 |
 
-| Percentile | Metal | OpenGL |
-|---|---|---|
-| p95 | 306-601 us | 437-754 us |
-| p99 | 375-674 us | 907-953 us |
+**MacBook Pro, Intel Core i9-9880H (macOS 26.7)** — Metal on either GPU (`VIO_METAL_ADAPTER`); OpenGL runs on the integrated GPU.
 
-Metal is slightly slower on simple scenes due to command encoding overhead, but **20% faster on heavy scenes** (1000+ draw calls with text). More importantly, Metal delivers **30-40% better tail latency** – fewer frame time spikes and more consistent rendering.
+| Scene | Metal, Radeon Pro 5500M | Metal, UHD 630 | OpenGL 4.1, UHD 630 |
+|---|---:|---:|---:|
+| 2D: 500 rects | 158 / 286 | 279 / 439 | 441 / 1145 |
+| 2D: 200 rects + 200 rounded rects + 50 texts | 542 / 706 | 574 / 749 | 878 / 1542 |
+| 2D: 1000 rects + 100 texts | 836 / 1165 | 937 / 1262 | 666 / 854 |
+| 3D: 1000 draws, 2 uniforms each | 574 / 800 | 703 / 877 | 1194 / 1496 |
+| 3D: 10 000 instances, 1 draw | 170 / 273 | 743 / 842 | 1290 / 1429 |
+
+**Windows 11, NVIDIA GeForce RTX 2080** — here the table gives the time to issue the frame (`vio_begin()` to `vio_draw_2d()`), median in microseconds. Headless Vulkan and OpenGL contexts copy every presented frame back to the host, which makes their `vio_end()` take longer than on Direct3D, so the frame time would not compare the backends.
+
+| Scene | Direct3D 12 | Direct3D 11 | Vulkan 1.3 | OpenGL 4.6 |
+|---|---:|---:|---:|---:|
+| 2D: 500 rects | 139 | 126 | 180 | 672 |
+| 2D: 200 rects + 200 rounded rects + 50 texts | 491 | 453 | 669 | 941 |
+| 2D: 1000 rects + 100 texts | 634 | 601 | 825 | 986 |
+| 3D: 1000 draws, 2 uniforms each | 831 | 434 | 1146 | 1028 |
+| 3D: 10 000 instances, 1 draw | 44 | 123 | 122 | 92 |
+On both Macs Metal is the faster backend in most scenes and has the steadier frame times; OpenGL is ahead in two cells (10 000 instances on the M5 by the median, the text-heavy 2D scene on the Intel Mac). On the RTX 2080 Direct3D 11 issues a frame fastest in four of the five scenes and Direct3D 12 when one draw covers 10 000 instances; Vulkan and OpenGL spend more CPU time per frame. These numbers are CPU-side times of small scenes, each from one run on a desktop machine: they compare the cost of issuing draws, not GPU throughput. Run the script on your own machine before choosing a backend:
+
+```bash
+php -d extension=vio examples/bench_backends.php            # every backend
+php -d extension=vio examples/bench_backends.php metal,opengl 600 --json=bench.json
+```
 
 ## Direct3D 11
 
